@@ -1,8 +1,359 @@
+/* ============================================================
+   Letterboxd-inspired design system
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --mw-bg: #14181c;
+  --mw-bg-elevated: #1c2228;
+  --mw-surface: #2c3440;
+  --mw-surface-hover: #384250;
+  --mw-border: #2c3440;
+
+  /* Text */
+  --mw-text: #ffffff;
+  --mw-text-muted: #9ab;
+  --mw-text-dim: #678;
+
+  /* Accents */
+  --mw-green: #00e054;
+  --mw-green-dark: #00b843;
+  --mw-amber: #ff9010;
+  --mw-amber-dark: #e07b00;
+  --mw-blue: #40bcf4;
+
+  /* Bootstrap variable overrides */
+  --bs-body-bg: var(--mw-bg);
+  --bs-body-color: var(--mw-text);
+  --bs-border-color: var(--mw-border);
+  --bs-primary: var(--mw-green);
+  --bs-primary-rgb: 0, 224, 84;
+  --bs-link-color: var(--mw-amber);
+  --bs-link-hover-color: var(--mw-green);
+  --bs-emphasis-color: var(--mw-text);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
+  background-color: var(--mw-bg);
+  color: var(--mw-text);
+  font-family: 'Graphik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app-shell {
-  background-color: #fff;
+  background-color: var(--mw-bg);
+}
+
+/* ---------- Links ---------- */
+a {
+  color: var(--mw-amber);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+  color: var(--mw-green);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn-primary {
+  --bs-btn-bg: var(--mw-green);
+  --bs-btn-border-color: var(--mw-green);
+  --bs-btn-color: #0b1215;
+  --bs-btn-hover-bg: var(--mw-green-dark);
+  --bs-btn-hover-border-color: var(--mw-green-dark);
+  --bs-btn-hover-color: #0b1215;
+  --bs-btn-active-bg: var(--mw-green-dark);
+  --bs-btn-active-border-color: var(--mw-green-dark);
+  --bs-btn-active-color: #0b1215;
+  --bs-btn-disabled-bg: var(--mw-green);
+  --bs-btn-disabled-border-color: var(--mw-green);
+  --bs-btn-disabled-color: #0b1215;
+  font-weight: 700;
+}
+
+.btn-accent {
+  --bs-btn-bg: var(--mw-amber);
+  --bs-btn-border-color: var(--mw-amber);
+  --bs-btn-color: #0b1215;
+  --bs-btn-hover-bg: var(--mw-amber-dark);
+  --bs-btn-hover-border-color: var(--mw-amber-dark);
+  --bs-btn-hover-color: #0b1215;
+  --bs-btn-active-bg: var(--mw-amber-dark);
+  --bs-btn-active-border-color: var(--mw-amber-dark);
+  --bs-btn-active-color: #0b1215;
+  font-weight: 700;
+}
+
+.btn-outline-light {
+  --bs-btn-color: var(--mw-text);
+  --bs-btn-border-color: var(--mw-surface);
+  --bs-btn-hover-bg: var(--mw-surface);
+  --bs-btn-hover-border-color: var(--mw-surface-hover);
+  --bs-btn-hover-color: var(--mw-text);
+  font-weight: 600;
+}
+
+.btn {
+  --bs-btn-border-radius: 0.5rem;
+  --bs-btn-padding-x: 1.25rem;
+  --bs-btn-padding-y: 0.6rem;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   Navbar
+   ============================================================ */
+.mw-navbar {
+  background-color: rgba(20, 24, 28, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--mw-border);
+}
+
+.mw-navbar .navbar-brand {
+  color: var(--mw-text);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.mw-navbar .navbar-brand .mw-brand-dot {
+  color: var(--mw-green);
+}
+
+.mw-navbar .nav-link {
+  color: var(--mw-text-muted);
+  font-weight: 600;
+  transition: color 0.15s ease-in-out;
+}
+
+.mw-navbar .nav-link:hover,
+.mw-navbar .nav-link:focus,
+.mw-navbar .nav-link.active {
+  color: var(--mw-text);
+}
+
+/* ============================================================
+   Cards
+   ============================================================ */
+.card {
+  --bs-card-bg: var(--mw-bg-elevated);
+  --bs-card-border-color: var(--mw-border);
+  --bs-card-color: var(--mw-text);
+  --bs-card-border-radius: 0.75rem;
+  --bs-card-inner-border-radius: 0.75rem;
+}
+
+/* ---------- Feature cards ---------- */
+.mw-feature-card {
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  border-radius: 0.75rem;
+  padding: 1.75rem;
+  height: 100%;
+  transition: transform 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.mw-feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--mw-surface-hover);
+}
+
+.mw-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: var(--mw-surface);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ============================================================
+   Movie poster cards
+   ============================================================ */
+.mw-poster-card {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--mw-surface), var(--mw-bg-elevated));
+  aspect-ratio: 2 / 3;
+  border: 2px solid var(--mw-border);
+  transition: transform 0.15s ease-in-out, border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.mw-poster-card:hover {
+  transform: scale(1.04);
+  border-color: var(--mw-green);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.mw-poster-card__body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+
+.mw-poster-card__genre {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mw-amber);
+}
+
+.mw-poster-card__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--mw-text);
+}
+
+.mw-poster-card__year {
+  font-size: 0.85rem;
+  color: var(--mw-text-muted);
+}
+
+.mw-poster-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mw-poster-badge.watched {
+  background-color: var(--mw-green);
+  color: #0b1215;
+}
+
+.mw-poster-badge.want-to-watch {
+  background-color: var(--mw-amber);
+  color: #0b1215;
+}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.mw-hero {
+  position: relative;
+  padding: 6rem 0 5rem;
+  overflow: hidden;
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(0, 224, 84, 0.12),
+      transparent 45%
+    ),
+    radial-gradient(circle at 85% 30%, rgba(255, 144, 16, 0.12), transparent 45%),
+    var(--mw-bg);
+}
+
+.mw-hero__eyebrow {
+  color: var(--mw-green);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.mw-hero__title {
+  font-weight: 800;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.mw-hero__title .accent-green {
+  color: var(--mw-green);
+}
+
+.mw-hero__title .accent-amber {
+  color: var(--mw-amber);
+}
+
+.mw-hero__lead {
+  color: var(--mw-text-muted);
+  font-size: 1.2rem;
+  max-width: 34rem;
+}
+
+/* Decorative poster strip in hero */
+.mw-hero__posters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  transform: rotate(4deg);
+}
+
+.mw-hero__posters .mw-poster-card:nth-child(2) {
+  transform: translateY(1.5rem);
+}
+
+.mw-hero__posters .mw-poster-card:nth-child(2):hover {
+  transform: translateY(1.5rem) scale(1.04);
+}
+
+/* ============================================================
+   Section helpers
+   ============================================================ */
+.mw-section {
+  padding: 4rem 0;
+}
+
+.mw-section__title {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.mw-section__subtitle {
+  color: var(--mw-text-muted);
+}
+
+.text-muted {
+  color: var(--mw-text-muted) !important;
+}
+
+/* ---------- CTA band ---------- */
+.mw-cta {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 224, 84, 0.12),
+    rgba(255, 144, 16, 0.12)
+  );
+  border: 1px solid var(--mw-border);
+  border-radius: 1rem;
+  padding: 3rem;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.mw-footer {
+  background-color: var(--mw-bg-elevated);
+  border-top: 1px solid var(--mw-border);
+  color: var(--mw-text-dim);
+}
+
+.mw-footer a {
+  color: var(--mw-text-muted);
+}
+
+.mw-footer a:hover {
+  color: var(--mw-green);
 }

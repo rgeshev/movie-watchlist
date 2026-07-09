@@ -61,7 +61,7 @@ export function createRouter(routes) {
 
     return {
       render: () => `
-        <div class="text-center py-5">
+        <div class="container text-center py-5">
           <h1 class="display-6">Page not found</h1>
           <p class="text-muted">No page matches <code>${pathname}</code>.</p>
           <a href="/" data-link class="btn btn-primary">Go home</a>

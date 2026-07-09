@@ -180,11 +180,6 @@ const seriesTemplates = [
   },
 ]
 
-function posterUrl(title) {
-  const label = encodeURIComponent(title)
-  return `https://placehold.co/300x450/1a1a2e/e94560?text=${label}`
-}
-
 function buildRows(templates, userId, genreByName, type) {
   const positionByStatus = {
     want_to_watch: 0,
@@ -199,7 +194,6 @@ function buildRows(templates, userId, genreByName, type) {
       user_id: userId,
       title: item.title,
       description: item.description,
-      poster_url: posterUrl(item.title),
       genre_id: genreByName[item.genre] ?? null,
       year: item.year,
       status: item.status,

@@ -1,9 +1,11 @@
 export function renderHeader() {
   return `
     <header>
-      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <nav class="navbar navbar-expand-lg mw-navbar sticky-top">
         <div class="container">
-          <a class="navbar-brand" href="/" data-link>Movie Watchlist</a>
+          <a class="navbar-brand" href="/" data-link>
+            Watchlist<span class="mw-brand-dot">.</span>
+          </a>
           <button
             class="navbar-toggler"
             type="button"
@@ -16,18 +18,15 @@ export function renderHeader() {
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="mainNavbar">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
               <li class="nav-item">
                 <a class="nav-link" href="/" data-link>Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/login" data-link>Login</a>
-              </li>
-              <li class="nav-item">
                 <a class="nav-link" href="/dashboard" data-link>Dashboard</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/movies/42/" data-link>Sample Movie</a>
+              <li class="nav-item ms-lg-3">
+                <a class="btn btn-primary btn-sm" href="/login" data-link>Sign in</a>
               </li>
             </ul>
           </div>

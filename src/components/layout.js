@@ -5,7 +5,7 @@ export function renderLayout(pageContent) {
   return `
     <div class="app-shell d-flex flex-column min-vh-100">
       ${renderHeader()}
-      <main id="page-content" class="container flex-grow-1 py-4">
+      <main id="page-content" class="flex-grow-1">
         ${pageContent}
       </main>
       ${renderFooter()}
