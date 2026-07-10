@@ -15,7 +15,7 @@ export function renderLayout(pageContent, user = null) {
   `
 }
 
-export function bindLayout(root, router) {
+export function bindLinks(root, router) {
   root.querySelectorAll('[data-link]').forEach((link) => {
     link.addEventListener('click', (event) => {
       if (
@@ -39,6 +39,10 @@ export function bindLayout(root, router) {
       router.navigate(href)
     })
   })
+}
+
+export function bindLayout(root, router) {
+  bindLinks(root, router)
 
   root.querySelectorAll('[data-logout]').forEach((button) => {
     button.addEventListener('click', async (event) => {

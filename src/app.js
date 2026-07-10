@@ -2,7 +2,7 @@ import { createRouter } from './router.js'
 import { renderLayout, bindLayout } from './components/layout.js'
 import { renderHomePage } from './pages/home.js'
 import { renderLoginPage, bindLoginPage } from './pages/login.js'
-import { renderDashboardPage } from './pages/dashboard.js'
+import { renderDashboardPage, bindDashboardPage } from './pages/dashboard.js'
 import { renderMoviePage } from './pages/movie.js'
 import { initAuth, onAuthChange, getUser } from './lib/auth.js'
 import { isSupabaseConfigured } from './lib/supabase.js'
@@ -67,6 +67,10 @@ export async function initApp() {
 
     if (pathname === '/login') {
       bindLoginPage(app, router)
+    }
+
+    if (pathname === '/dashboard') {
+      bindDashboardPage(app, router)
     }
   }
 

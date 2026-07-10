@@ -445,3 +445,60 @@ a:hover {
 .mw-toast--warning {
   border-left: 4px solid var(--mw-amber);
 }
+
+/* ============================================================
+   Dashboard
+   ============================================================ */
+.mw-dashboard-card {
+  border-color: var(--mw-border);
+  transition: border-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.mw-dashboard-card:hover {
+  border-color: var(--mw-surface-hover);
+}
+
+.mw-dashboard-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  background-color: var(--mw-surface);
+  font-size: 1.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.mw-dashboard-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--mw-bg);
+  border: 1px solid var(--mw-border);
+  height: 100%;
+}
+
+.mw-dashboard-stat__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mw-text-muted);
+}
+
+.mw-dashboard-stat__value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--mw-text);
+}
+
+.mw-dashboard-stat__placeholder {
+  display: block;
+  height: 1.75rem;
+  border-radius: 0.35rem;
+  background-color: var(--mw-surface);
+}
