@@ -175,6 +175,32 @@ export async function deleteMovie(id) {
   return { error }
 }
 
+export async function reorderMovies(updates) {
+  const supabase = getSupabase()
+
+  if (!supabase) {
+    return { error: new Error('Supabase is not configured.') }
+  }
+
+  if (!updates?.length) {
+    return { error: null }
+  }
+
+  const results = await Promise.all(
+    updates.map(({ id, status, position }) =>
+      supabase.from('movies').update({ status, position }).eq('id', id),
+    ),
+  )
+
+  const failed = results.find((result) => result.error)
+
+  if (failed) {
+    return { error: failed.error }
+  }
+
+  return { error: null }
+}
+
 export async function getMovieStats() {
   const supabase = getSupabase()
 

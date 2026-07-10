@@ -379,7 +379,35 @@ a:hover {
 }
 
 .mw-board-card {
-  cursor: default;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mw-board-card:active {
+  cursor: grabbing;
+}
+
+.mw-board-card--ghost {
+  opacity: 0.45;
+  border-style: dashed;
+  border-color: var(--mw-amber);
+}
+
+.mw-board-card--chosen {
+  border-color: var(--mw-amber);
+  box-shadow: 0 0 0 2px rgba(255, 144, 16, 0.35);
+}
+
+.mw-board-card--drag {
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+.mw-board-column__list--drag-over {
+  background-color: rgba(255, 144, 16, 0.06);
+  outline: 2px dashed rgba(255, 144, 16, 0.35);
+  outline-offset: -0.5rem;
+  border-radius: 0.5rem;
 }
 
 .mw-modal {

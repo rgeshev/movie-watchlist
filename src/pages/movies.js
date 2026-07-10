@@ -1,11 +1,20 @@
+import Sortable from 'sortablejs'
 import {
   getMovies,
   getGenres,
   createMovie,
   updateMovie,
   deleteMovie,
+  reorderMovies,
 } from '../lib/movies.js'
 import { toast } from '../components/toast.js'
+
+const MOVIES_SORTABLE_GROUP = 'movies-board'
+const EMPTY_COLUMN_MESSAGE = `
+  <p class="mw-board-column__empty text-muted mb-0">
+    No movies here yet. Add one to get started.
+  </p>
+`
 
 function getBootstrapModal(element) {
   if (!element || !window.bootstrap?.Modal) {
@@ -82,6 +91,7 @@ const moviesPageState = {
 }
 
 let moviesListenersReady = false
+let sortableInstances = []
 
 function queryMovies(selector) {
   return document.querySelector(selector)
@@ -91,11 +101,219 @@ function getBoard() {
   return moviesPageState.root?.querySelector('#movies-board') ?? null
 }
 
+function sortMoviesByPosition(movies) {
+  return [...movies].sort((left, right) => (left.position ?? 0) - (right.position ?? 0))
+}
+
+function groupMoviesByStatus(movies) {
+  const sorted = sortMoviesByPosition(movies)
+
+  return {
+    want_to_watch: sorted.filter((movie) => movie.status === 'want_to_watch'),
+    watched: sorted.filter((movie) => movie.status === 'watched'),
+  }
+}
+
+function destroyBoardSortable() {
+  sortableInstances.forEach((instance) => instance.destroy())
+  sortableInstances = []
+}
+
+function syncEmptyColumnStates() {
+  const lists = getBoard()?.querySelectorAll('[data-column-list]') ?? []
+
+  lists.forEach((list) => {
+    const hasCards = list.querySelector('.mw-board-card')
+    const emptyElement = list.querySelector('.mw-board-column__empty')
+
+    if (hasCards && emptyElement) {
+      emptyElement.remove()
+      return
+    }
+
+    if (!hasCards && !emptyElement) {
+      list.insertAdjacentHTML('beforeend', EMPTY_COLUMN_MESSAGE)
+    }
+  })
+}
+
+function updateColumnCounts() {
+  const grouped = groupMoviesByStatus(moviesPageState.movies)
+
+  Object.entries(grouped).forEach(([status, movies]) => {
+    const countElement = getBoard()
+      ?.querySelector(`[data-board-column="${status}"] [data-column-count]`)
+
+    if (countElement) {
+      const label = movies.length === 1 ? 'title' : 'titles'
+      countElement.textContent = `${movies.length} ${label}`
+    }
+  })
+}
+
+function collectBoardUpdates() {
+  const updates = []
+  const lists = getBoard()?.querySelectorAll('[data-column-list]') ?? []
+
+  lists.forEach((list) => {
+    const status = list.getAttribute('data-column-list')
+    const cards = list.querySelectorAll('.mw-board-card[data-movie-id]')
+
+    cards.forEach((card, index) => {
+      updates.push({
+        id: card.getAttribute('data-movie-id'),
+        status,
+        position: index,
+      })
+    })
+  })
+
+  return updates
+}
+
+function clearBoardDragHighlights() {
+  getBoard()
+    ?.querySelectorAll('[data-column-list]')
+    .forEach((list) => list.classList.remove('mw-board-column__list--drag-over'))
+}
+
+function applyBoardUpdates(movies, updates) {
+  const updateMap = new Map(updates.map((update) => [String(update.id), update]))
+
+  return movies.map((movie) => {
+    const update = updateMap.get(String(movie.id))
+
+    if (!update) {
+      return movie
+    }
+
+    return {
+      ...movie,
+      status: update.status,
+      position: update.position,
+    }
+  })
+}
+
+function hasBoardOrderChanged(previousMovies, updates) {
+  const previousMap = new Map(
+    previousMovies.map((movie) => [
+      String(movie.id),
+      { status: movie.status, position: movie.position ?? 0 },
+    ]),
+  )
+
+  return updates.some((update) => {
+    const previous = previousMap.get(String(update.id))
+
+    return (
+      !previous ||
+      previous.status !== update.status ||
+      previous.position !== update.position
+    )
+  })
+}
+
+function getChangedBoardUpdates(previousMovies, updates) {
+  const previousMap = new Map(
+    previousMovies.map((movie) => [
+      String(movie.id),
+      { status: movie.status, position: movie.position ?? 0 },
+    ]),
+  )
+
+  return updates.filter((update) => {
+    const previous = previousMap.get(String(update.id))
+
+    return (
+      !previous ||
+      previous.status !== update.status ||
+      previous.position !== update.position
+    )
+  })
+}
+
+async function handleBoardSortEnd(event) {
+  if (event.from === event.to && event.oldIndex === event.newIndex) {
+    return
+  }
+
+  syncEmptyColumnStates()
+
+  const updates = collectBoardUpdates()
+  const previousMovies = [...moviesPageState.movies]
+
+  if (!hasBoardOrderChanged(previousMovies, updates)) {
+    return
+  }
+
+  moviesPageState.movies = applyBoardUpdates(previousMovies, updates)
+  updateColumnCounts()
+
+  const changedUpdates = getChangedBoardUpdates(previousMovies, updates)
+  const { error } = await reorderMovies(changedUpdates)
+
+  if (error) {
+    moviesPageState.movies = previousMovies
+    refreshBoard()
+    toast.error('Could not save the new order. Please try again.')
+    return
+  }
+
+  const movedBetweenColumns = event.from !== event.to
+
+  if (movedBetweenColumns) {
+    toast.success('Movie moved.')
+  }
+}
+
+function initBoardSortable() {
+  destroyBoardSortable()
+
+  const lists = getBoard()?.querySelectorAll('[data-column-list]') ?? []
+
+  lists.forEach((list) => {
+    sortableInstances.push(
+      Sortable.create(list, {
+        group: MOVIES_SORTABLE_GROUP,
+        animation: 180,
+        draggable: '.mw-board-card',
+        ghostClass: 'mw-board-card--ghost',
+        chosenClass: 'mw-board-card--chosen',
+        dragClass: 'mw-board-card--drag',
+        filter: '.mw-poster-card__action',
+        preventOnFilter: true,
+        emptyInsertThreshold: 24,
+        onStart(event) {
+          clearBoardDragHighlights()
+          event.from.classList.add('mw-board-column__list--drag-over')
+        },
+        onMove(event) {
+          clearBoardDragHighlights()
+          event.to.classList.add('mw-board-column__list--drag-over')
+          return true
+        },
+        onEnd(event) {
+          clearBoardDragHighlights()
+          handleBoardSortEnd(event)
+        },
+        onAdd() {
+          syncEmptyColumnStates()
+        },
+        onRemove() {
+          syncEmptyColumnStates()
+        },
+      }),
+    )
+  })
+}
+
 function refreshBoard() {
   const board = getBoard()
 
   if (board) {
     board.innerHTML = renderBoard(moviesPageState.movies)
+    initBoardSortable()
   }
 }
 
@@ -496,7 +714,7 @@ export function renderMoviesPage() {
       <div class="mw-board__intro mb-4">
         <h1 class="h2 mb-2">Movies</h1>
         <p class="text-muted mb-0">
-          Organize your film watchlist. Drag and drop coming soon.
+          Organize your film watchlist. Drag cards between columns or reorder within a column.
         </p>
       </div>
 
@@ -597,13 +815,6 @@ export function renderMoviesPage() {
   `
 }
 
-function groupMoviesByStatus(movies) {
-  return {
-    want_to_watch: movies.filter((movie) => movie.status === 'want_to_watch'),
-    watched: movies.filter((movie) => movie.status === 'watched'),
-  }
-}
-
 function renderBoard(movies, loading = false) {
   const grouped = groupMoviesByStatus(movies)
 
@@ -615,6 +826,7 @@ function renderBoard(movies, loading = false) {
 
 export async function bindMoviesPage(root) {
   ensureMoviesListeners()
+  destroyBoardSortable()
 
   const bindId = ++moviesPageState.bindId
   moviesPageState.root = root
