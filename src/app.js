@@ -3,6 +3,7 @@ import { renderLayout, bindLayout } from './components/layout.js'
 import { renderHomePage } from './pages/home.js'
 import { renderLoginPage, bindLoginPage } from './pages/login.js'
 import { renderDashboardPage, bindDashboardPage } from './pages/dashboard.js'
+import { renderMoviesPage, bindMoviesPage } from './pages/movies.js'
 import { renderMoviePage } from './pages/movie.js'
 import { initAuth, onAuthChange, getUser } from './lib/auth.js'
 import { isSupabaseConfigured } from './lib/supabase.js'
@@ -12,6 +13,7 @@ const routes = [
   { path: '/', render: renderHomePage },
   { path: '/login', render: renderLoginPage },
   { path: '/dashboard', render: renderDashboardPage },
+  { path: '/movies', render: renderMoviesPage },
   { path: '/movies/:id/', render: renderMoviePage },
 ]
 
@@ -45,7 +47,9 @@ export async function initApp() {
       return
     }
 
-    if (pathname === '/dashboard' && !user) {
+    const protectedPaths = ['/dashboard', '/movies']
+
+    if (protectedPaths.includes(pathname) && !user) {
       router.navigate('/login')
       return
     }
@@ -71,6 +75,10 @@ export async function initApp() {
 
     if (pathname === '/dashboard') {
       bindDashboardPage(app, router)
+    }
+
+    if (pathname === '/movies') {
+      bindMoviesPage(app)
     }
   }
 

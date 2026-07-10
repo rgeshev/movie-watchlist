@@ -181,55 +181,87 @@ a:hover {
 .mw-poster-card {
   position: relative;
   border-radius: 0.5rem;
-  overflow: hidden;
-  background: linear-gradient(160deg, var(--mw-surface), var(--mw-bg-elevated));
-  aspect-ratio: 2 / 3;
-  border: 2px solid var(--mw-border);
-  transition: transform 0.15s ease-in-out, border-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
+  background-color: var(--mw-surface);
+  border: 1px solid var(--mw-border);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
 .mw-poster-card:hover {
-  transform: scale(1.04);
   border-color: var(--mw-green);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background-color: var(--mw-surface-hover);
 }
 
 .mw-poster-card__body {
-  position: absolute;
-  inset: 0;
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.35rem;
-  padding: 1rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mw-poster-card__info {
+  flex: 1;
+  min-width: 0;
 }
 
 .mw-poster-card__genre {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--mw-amber);
+  display: block;
+  margin-bottom: 0.15rem;
 }
 
 .mw-poster-card__title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
   margin: 0;
   color: var(--mw-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mw-poster-card__year {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--mw-text-muted);
+  display: block;
+  margin-top: 0.1rem;
+}
+
+.mw-poster-card__actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.mw-poster-card:hover .mw-poster-card__actions {
+  opacity: 1;
+}
+
+.mw-poster-card__action {
+  --bs-btn-padding-x: 0.45rem;
+  --bs-btn-padding-y: 0.25rem;
+  line-height: 1;
+  min-width: 2rem;
+}
+
+/* Keep these defined so any JS references don't break, but they're empty now */
+.mw-poster-card__backdrop,
+.mw-poster-card__gradient {
+  display: none;
 }
 
 .mw-poster-badge {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 0.2rem 0.5rem;
@@ -246,6 +278,119 @@ a:hover {
 .mw-poster-badge.want-to-watch {
   background-color: var(--mw-amber);
   color: #0b1215;
+}
+
+/* ============================================================
+   Watchlist board
+   ============================================================ */
+.mw-board-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 28rem;
+  max-height: calc(100vh - 12rem);
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.mw-board-column__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--mw-border);
+  background-color: rgba(20, 24, 28, 0.65);
+}
+
+.mw-board-column__title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mw-text);
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.mw-board-column__title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2.5rem;
+  height: 3px;
+  border-radius: 999px;
+  background-color: var(--mw-amber);
+}
+
+.mw-board-column[data-board-column='watched'] .mw-board-column__title::after {
+  background-color: var(--mw-green);
+}
+
+.mw-board-column__count {
+  font-size: 0.85rem;
+}
+
+.mw-board-column__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.mw-board-column__empty {
+  grid-column: 1 / -1;
+  padding: 2rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--mw-border);
+  border-radius: 0.75rem;
+}
+
+.mw-board-column__placeholder {
+  aspect-ratio: 2 / 3;
+  border-radius: 0.5rem;
+  background: linear-gradient(160deg, var(--mw-surface), var(--mw-bg-elevated));
+  border: 2px solid var(--mw-border);
+  animation: mw-board-pulse 1.4s ease-in-out infinite;
+}
+
+.mw-board-column__placeholder:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mw-board-column__placeholder:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes mw-board-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.mw-board-card {
+  cursor: default;
+}
+
+.mw-modal {
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  color: var(--mw-text);
+}
+
+.mw-modal .modal-header,
+.mw-modal .modal-footer {
+  background-color: transparent;
 }
 
 /* ============================================================
@@ -391,6 +536,19 @@ a:hover {
 
 .form-control::placeholder {
   color: var(--mw-text-dim);
+}
+
+.form-select {
+  background-color: var(--mw-bg);
+  border-color: var(--mw-border);
+  color: var(--mw-text);
+}
+
+.form-select:focus {
+  background-color: var(--mw-bg);
+  border-color: var(--mw-green);
+  color: var(--mw-text);
+  box-shadow: 0 0 0 0.2rem rgba(0, 224, 84, 0.2);
 }
 
 .form-label {
