@@ -10,10 +10,10 @@
     "seed": "node scripts/seed.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.86.0",
     "bootstrap": "^5.3.8"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.86.0",
     "dotenv": "^17.2.3",
     "vite": "^8.1.1"
   }

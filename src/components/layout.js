@@ -1,14 +1,15 @@
 import { renderHeader } from './header.js'
 import { renderFooter } from './footer.js'
+import { signOut } from '../lib/auth.js'
 
-export function renderLayout(pageContent) {
+export function renderLayout(pageContent, user = null) {
   return `
     <div class="app-shell d-flex flex-column min-vh-100">
-      ${renderHeader()}
+      ${renderHeader(user)}
       <main id="page-content" class="flex-grow-1">
         ${pageContent}
       </main>
-      ${renderFooter()}
+      ${renderFooter(user)}
     </div>
   `
 }
@@ -35,6 +36,14 @@ export function bindLayout(root, router) {
 
       event.preventDefault()
       router.navigate(href)
+    })
+  })
+
+  root.querySelectorAll('[data-logout]').forEach((button) => {
+    button.addEventListener('click', async (event) => {
+      event.preventDefault()
+      await signOut()
+      router.navigate('/')
     })
   })
 }

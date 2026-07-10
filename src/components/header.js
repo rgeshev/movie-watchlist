@@ -1,4 +1,19 @@
-export function renderHeader() {
+export function renderHeader(user) {
+  const authNav = user
+    ? `
+      <li class="nav-item">
+        <span class="nav-link text-white-50">${user.user_metadata?.username || user.email}</span>
+      </li>
+      <li class="nav-item ms-lg-3">
+        <button type="button" class="btn btn-outline-light btn-sm" data-logout>Log out</button>
+      </li>
+    `
+    : `
+      <li class="nav-item ms-lg-3">
+        <a class="btn btn-primary btn-sm" href="/login" data-link>Sign in</a>
+      </li>
+    `
+
   return `
     <header>
       <nav class="navbar navbar-expand-lg mw-navbar sticky-top">
@@ -25,9 +40,7 @@ export function renderHeader() {
               <li class="nav-item">
                 <a class="nav-link" href="/dashboard" data-link>Dashboard</a>
               </li>
-              <li class="nav-item ms-lg-3">
-                <a class="btn btn-primary btn-sm" href="/login" data-link>Sign in</a>
-              </li>
+              ${authNav}
             </ul>
           </div>
         </div>
