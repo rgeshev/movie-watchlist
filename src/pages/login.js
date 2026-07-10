@@ -1,4 +1,5 @@
 import { signIn, signUp } from '../lib/auth.js'
+import { toast } from '../components/toast.js'
 
 export function renderLoginPage() {
   return `
@@ -42,8 +43,6 @@ export function renderLoginPage() {
                   </button>
                 </li>
               </ul>
-
-              <div id="auth-alert" class="alert d-none" role="alert"></div>
 
               <div class="tab-content">
                 <div
@@ -155,26 +154,6 @@ export function renderLoginPage() {
   `
 }
 
-function showAlert(root, message, type = 'danger') {
-  const alert = root.querySelector('#auth-alert')
-
-  if (!alert) {
-    return
-  }
-
-  alert.textContent = message
-  alert.className = `alert alert-${type}`
-  alert.classList.remove('d-none')
-}
-
-function hideAlert(root) {
-  const alert = root.querySelector('#auth-alert')
-
-  if (alert) {
-    alert.classList.add('d-none')
-  }
-}
-
 function setSubmitting(button, isSubmitting, defaultLabel) {
   button.disabled = isSubmitting
   button.textContent = isSubmitting ? 'Please wait…' : defaultLabel
@@ -190,7 +169,6 @@ export function bindLoginPage(root, router) {
 
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault()
-    hideAlert(root)
 
     if (!loginForm.checkValidity()) {
       loginForm.classList.add('was-validated')
@@ -209,7 +187,7 @@ export function bindLoginPage(root, router) {
     setSubmitting(submitButton, false, 'Sign in')
 
     if (error) {
-      showAlert(root, error.message)
+      toast.error(error.message)
       return
     }
 
@@ -218,7 +196,6 @@ export function bindLoginPage(root, router) {
 
   registerForm.addEventListener('submit', async (event) => {
     event.preventDefault()
-    hideAlert(root)
 
     const formData = new FormData(registerForm)
     const username = formData.get('username').trim()
@@ -227,7 +204,7 @@ export function bindLoginPage(root, router) {
     const confirmPassword = formData.get('confirmPassword')
 
     if (password !== confirmPassword) {
-      showAlert(root, 'Passwords do not match.')
+      toast.error('Passwords do not match.')
       return
     }
 
@@ -245,7 +222,7 @@ export function bindLoginPage(root, router) {
     setSubmitting(submitButton, false, 'Create account')
 
     if (error) {
-      showAlert(root, error.message)
+      toast.error(error.message)
       return
     }
 
@@ -254,11 +231,7 @@ export function bindLoginPage(root, router) {
       return
     }
 
-    showAlert(
-      root,
-      'Account created! Check your email to confirm your address, then sign in.',
-      'success',
-    )
+    toast.info('Account created. Check your email to confirm your address, then sign in.')
 
     const loginTab = root.querySelector('#login-tab')
     if (loginTab) {

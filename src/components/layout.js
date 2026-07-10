@@ -1,6 +1,7 @@
 import { renderHeader } from './header.js'
 import { renderFooter } from './footer.js'
 import { signOut } from '../lib/auth.js'
+import { toast } from './toast.js'
 
 export function renderLayout(pageContent, user = null) {
   return `
@@ -42,7 +43,14 @@ export function bindLayout(root, router) {
   root.querySelectorAll('[data-logout]').forEach((button) => {
     button.addEventListener('click', async (event) => {
       event.preventDefault()
-      await signOut()
+
+      const { error } = await signOut()
+
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
       router.navigate('/')
     })
   })

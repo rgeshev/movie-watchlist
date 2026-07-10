@@ -6,6 +6,7 @@ import { renderDashboardPage } from './pages/dashboard.js'
 import { renderMoviePage } from './pages/movie.js'
 import { initAuth, onAuthChange, getUser } from './lib/auth.js'
 import { isSupabaseConfigured } from './lib/supabase.js'
+import { toast } from './components/toast.js'
 
 const routes = [
   { path: '/', render: renderHomePage },
@@ -32,6 +33,7 @@ export async function initApp() {
     await initAuth()
   } catch (error) {
     console.error('Failed to initialize auth:', error)
+    toast.error('Could not restore your session. Please sign in again.')
   }
 
   function render() {

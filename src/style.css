@@ -410,3 +410,38 @@ a:hover {
 .mw-footer .btn-link:hover {
   color: var(--mw-green);
 }
+
+/* ============================================================
+   Toast notifications
+   ============================================================ */
+.mw-toast-container {
+  z-index: 1080;
+  max-width: min(24rem, calc(100vw - 2rem));
+}
+
+.mw-toast {
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  color: var(--mw-text);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.mw-toast .toast-body {
+  font-weight: 600;
+}
+
+.mw-toast--error {
+  border-left: 4px solid #f87171;
+}
+
+.mw-toast--info {
+  border-left: 4px solid var(--mw-blue);
+}
+
+.mw-toast--success {
+  border-left: 4px solid var(--mw-green);
+}
+
+.mw-toast--warning {
+  border-left: 4px solid var(--mw-amber);
+}
