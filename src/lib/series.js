@@ -7,6 +7,7 @@ const SERIES_SELECT = `
   description,
   year,
   total_seasons,
+  total_episodes,
   status,
   position,
   genre_id,
@@ -50,7 +51,15 @@ export async function getSeries() {
   return { series: data ?? [], error: null }
 }
 
-export async function createSeries({ title, description, genreId, year, totalSeasons, status }) {
+export async function createSeries({
+  title,
+  description,
+  genreId,
+  year,
+  totalSeasons,
+  totalEpisodes,
+  status,
+}) {
   const supabase = getSupabase()
   const user = getUser()
 
@@ -77,6 +86,7 @@ export async function createSeries({ title, description, genreId, year, totalSea
       genre_id: genreId || null,
       year: year ?? null,
       total_seasons: totalSeasons ?? null,
+      total_episodes: totalEpisodes ?? null,
       status,
       position,
     })
@@ -92,7 +102,7 @@ export async function createSeries({ title, description, genreId, year, totalSea
 
 export async function updateSeries(
   id,
-  { title, description, genreId, year, totalSeasons, status },
+  { title, description, genreId, year, totalSeasons, totalEpisodes, status },
   currentStatus,
 ) {
   const supabase = getSupabase()
@@ -107,6 +117,7 @@ export async function updateSeries(
     genre_id: genreId || null,
     year: year ?? null,
     total_seasons: totalSeasons ?? null,
+    total_episodes: totalEpisodes ?? null,
     status,
   }
 

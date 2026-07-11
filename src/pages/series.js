@@ -388,6 +388,7 @@ function openEditModal(seriesId) {
   const genreSelect = querySeries('#series-genre')
   const yearField = querySeries('#series-year')
   const totalSeasonsField = querySeries('#series-total-seasons')
+  const totalEpisodesField = querySeries('#series-total-episodes')
   const statusField = querySeries('#series-status')
 
   if (seriesFormTitle) {
@@ -418,6 +419,10 @@ function openEditModal(seriesId) {
     totalSeasonsField.value = existing.total_seasons ?? ''
   }
 
+  if (totalEpisodesField) {
+    totalEpisodesField.value = existing.total_episodes ?? ''
+  }
+
   if (statusField) {
     statusField.value = existing.status
   }
@@ -431,6 +436,7 @@ function getSeriesFormValues() {
   const yearValue = formData.get('year')
   const genreValue = formData.get('genreId')
   const totalSeasonsValue = formData.get('totalSeasons')
+  const totalEpisodesValue = formData.get('totalEpisodes')
 
   return {
     title: String(formData.get('title') ?? '').trim(),
@@ -438,6 +444,7 @@ function getSeriesFormValues() {
     genreId: genreValue ? Number(genreValue) : null,
     year: yearValue ? Number(yearValue) : null,
     totalSeasons: totalSeasonsValue ? Number(totalSeasonsValue) : null,
+    totalEpisodes: totalEpisodesValue ? Number(totalEpisodesValue) : null,
     status: formData.get('status'),
   }
 }
@@ -628,7 +635,7 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;')
 }
 
-function formatSeriesMeta(year, totalSeasons) {
+function formatSeriesMeta(year, totalSeasons, totalEpisodes) {
   const parts = []
 
   if (year) {
@@ -640,13 +647,18 @@ function formatSeriesMeta(year, totalSeasons) {
     parts.push(`${escapeHtml(totalSeasons)} ${label}`)
   }
 
+  if (totalEpisodes) {
+    const label = totalEpisodes === 1 ? 'episode' : 'episodes'
+    parts.push(`${escapeHtml(totalEpisodes)} ${label}`)
+  }
+
   return parts.join(' · ')
 }
 
 function renderSeriesCard(item) {
   const genre = escapeHtml(item.genres?.name ?? 'Series')
   const title = escapeHtml(item.title)
-  const meta = formatSeriesMeta(item.year, item.total_seasons)
+  const meta = formatSeriesMeta(item.year, item.total_seasons, item.total_episodes)
 
   return `
     <article class="mw-poster-card mw-board-card" data-series-id="${item.id}">
@@ -742,7 +754,7 @@ export function renderSeriesPage() {
       <div class="modal fade" id="deleteSeriesModal" tabindex="-1" aria-labelledby="deleteSeriesModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content mw-modal">
-            <div class="modal-header border-secondary">
+            <div class="modal-header">
               <h2 class="modal-title h5" id="deleteSeriesModalLabel">Delete series?</h2>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -751,7 +763,7 @@ export function renderSeriesPage() {
                 Remove <strong id="delete-series-title"></strong> from your watchlist? This cannot be undone.
               </p>
             </div>
-            <div class="modal-footer border-secondary">
+            <div class="modal-footer">
               <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
               <button type="button" class="btn btn-danger" id="confirm-delete-series">Delete</button>
             </div>
@@ -763,7 +775,7 @@ export function renderSeriesPage() {
         <div class="modal-dialog modal-dialog-centered modal-lg">
           <div class="modal-content mw-modal">
             <form id="series-form" novalidate>
-              <div class="modal-header border-secondary">
+              <div class="modal-header">
                 <h2 class="modal-title h5" id="seriesFormModalLabel">Add series</h2>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
@@ -823,6 +835,18 @@ export function renderSeriesPage() {
                     />
                   </div>
                   <div class="col-sm-6">
+                    <label for="series-total-episodes" class="form-label">Total Episodes</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="series-total-episodes"
+                      name="totalEpisodes"
+                      min="1"
+                      max="10000"
+                      placeholder="e.g. 24"
+                    />
+                  </div>
+                  <div class="col-12">
                     <label for="series-status" class="form-label">Status</label>
                     <select class="form-select" id="series-status" name="status" required>
                       <option value="want_to_watch">Want to Watch</option>
@@ -831,7 +855,7 @@ export function renderSeriesPage() {
                   </div>
                 </div>
               </div>
-              <div class="modal-footer border-secondary">
+              <div class="modal-footer">
                 <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-accent" id="series-form-submit">Save series</button>
               </div>

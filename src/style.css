@@ -419,6 +419,7 @@ a:hover {
 .mw-modal .modal-header,
 .mw-modal .modal-footer {
   background-color: transparent;
+  border: none;
 }
 
 /* ============================================================

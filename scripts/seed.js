@@ -112,6 +112,7 @@ const seriesTemplates = [
     genre: 'Drama',
     year: 2008,
     total_seasons: 5,
+    total_episodes: 62,
     status: 'watched',
   },
   {
@@ -120,6 +121,7 @@ const seriesTemplates = [
     genre: 'Comedy',
     year: 2022,
     total_seasons: 3,
+    total_episodes: 28,
     status: 'watched',
   },
   {
@@ -128,6 +130,7 @@ const seriesTemplates = [
     genre: 'Sci-Fi',
     year: 2016,
     total_seasons: 4,
+    total_episodes: 34,
     status: 'watched',
   },
   {
@@ -136,6 +139,7 @@ const seriesTemplates = [
     genre: 'Drama',
     year: 2002,
     total_seasons: 5,
+    total_episodes: 60,
     status: 'watched',
   },
   {
@@ -144,6 +148,7 @@ const seriesTemplates = [
     genre: 'Comedy',
     year: 2016,
     total_seasons: 2,
+    total_episodes: 12,
     status: 'watched',
   },
   {
@@ -152,6 +157,7 @@ const seriesTemplates = [
     genre: 'Drama',
     year: 2024,
     total_seasons: 1,
+    total_episodes: 10,
     status: 'want_to_watch',
   },
   {
@@ -160,6 +166,7 @@ const seriesTemplates = [
     genre: 'Sci-Fi',
     year: 2024,
     total_seasons: 1,
+    total_episodes: 8,
     status: 'want_to_watch',
   },
   {
@@ -168,6 +175,7 @@ const seriesTemplates = [
     genre: 'Fantasy',
     year: 2022,
     total_seasons: 2,
+    total_episodes: 18,
     status: 'want_to_watch',
   },
   {
@@ -176,6 +184,7 @@ const seriesTemplates = [
     genre: 'Mystery',
     year: 2022,
     total_seasons: 2,
+    total_episodes: 19,
     status: 'want_to_watch',
   },
   {
@@ -184,6 +193,7 @@ const seriesTemplates = [
     genre: 'Drama',
     year: 2023,
     total_seasons: 2,
+    total_episodes: 16,
     status: 'want_to_watch',
   },
 ]
@@ -210,6 +220,7 @@ function buildRows(templates, userId, genreByName, type) {
 
     if (type === 'series') {
       row.total_seasons = item.total_seasons
+      row.total_episodes = item.total_episodes
     }
 
     return row

@@ -726,7 +726,7 @@ export function renderMoviesPage() {
       <div class="modal fade" id="deleteMovieModal" tabindex="-1" aria-labelledby="deleteMovieModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content mw-modal">
-            <div class="modal-header border-secondary">
+            <div class="modal-header">
               <h2 class="modal-title h5" id="deleteMovieModalLabel">Delete movie?</h2>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -735,7 +735,7 @@ export function renderMoviesPage() {
                 Remove <strong id="delete-movie-title"></strong> from your watchlist? This cannot be undone.
               </p>
             </div>
-            <div class="modal-footer border-secondary">
+            <div class="modal-footer">
               <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
               <button type="button" class="btn btn-danger" id="confirm-delete-movie">Delete</button>
             </div>
@@ -747,7 +747,7 @@ export function renderMoviesPage() {
         <div class="modal-dialog modal-dialog-centered modal-lg">
           <div class="modal-content mw-modal">
             <form id="movie-form" novalidate>
-              <div class="modal-header border-secondary">
+              <div class="modal-header">
                 <h2 class="modal-title h5" id="movieFormModalLabel">Add movie</h2>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
@@ -803,7 +803,7 @@ export function renderMoviesPage() {
                   </div>
                 </div>
               </div>
-              <div class="modal-footer border-secondary">
+              <div class="modal-footer">
                 <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-accent" id="movie-form-submit">Save movie</button>
               </div>
