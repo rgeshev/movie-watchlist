@@ -3,10 +3,10 @@ import { renderFooter } from './footer.js'
 import { signOut } from '../lib/auth.js'
 import { toast } from './toast.js'
 
-export function renderLayout(pageContent, user = null) {
+export function renderLayout(pageContent, user = null, profile = null) {
   return `
     <div class="app-shell d-flex flex-column min-vh-100">
-      ${renderHeader(user)}
+      ${renderHeader(user, profile)}
       <main id="page-content" class="flex-grow-1">
         ${pageContent}
       </main>

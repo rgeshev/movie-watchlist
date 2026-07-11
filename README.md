@@ -22,6 +22,7 @@ Inspired by [Letterboxd](https://letterboxd.com), the UI uses a dark theme with 
 |------|--------------|
 | **Visitor (not signed in)** | View the landing page and login/register page |
 | **Signed-in user** | View dashboard, manage their own movies and series, drag-and-drop to reorder and change status |
+| **Admin** | Everything a signed-in user can do, plus access `/admin` to view all users, promote/demote roles, delete users, and manage any user's movies or series |
 | **Other users** | Cannot view or modify another user's watchlist (enforced by Row Level Security) |
 
 Each user only sees and edits their own data. Genres are shared read-only lookup values available to everyone.
@@ -212,8 +213,33 @@ Run the SQL files in `supabase/migrations/` against your Supabase project, in fi
 3. `20260709190000_remove_poster_url.sql`
 4. `20260711094700_add_series_table.sql`
 5. `20260711110000_add_series_total_episodes.sql`
+6. `20260711123500_add_user_roles.sql`
 
 You can paste them into the Supabase SQL Editor or use the Supabase CLI if configured locally.
+
+### 4b. Bootstrap the first admin (one-time)
+
+After registering your account, promote it to admin in the Supabase SQL Editor:
+
+```sql
+UPDATE public.profiles
+SET role = 'admin'
+WHERE id = (
+  SELECT id FROM auth.users WHERE email = 'your-email@example.com'
+);
+```
+
+Replace `your-email@example.com` with the email you used to register. Only existing admins can promote other users from the `/admin` panel afterward.
+
+### 4c. Deploy the admin delete-user Edge Function
+
+The `/admin` panel deletes auth accounts via the `admin-delete-user` Edge Function. Deploy it from the project root with the Supabase CLI:
+
+```bash
+supabase functions deploy admin-delete-user
+```
+
+The function verifies the caller is an admin, then removes the user's profile, watchlist data, and auth account using the service role key (server-side only).
 
 ### 5. Configure Supabase Auth (recommended)
 
@@ -268,6 +294,7 @@ movie-watchlist/
 │   │   ├── dashboard.js    # User stats (/dashboard)
 │   │   ├── movies.js       # Movies kanban board (/movies)
 │   │   ├── series.js       # Series kanban board (/series)
+│   │   ├── admin.js        # Admin panel (/admin)
 │   │   └── movie.js        # Single movie detail route (/movies/:id/)
 │   │
 │   ├── components/
@@ -278,14 +305,17 @@ movie-watchlist/
 │   │
 │   └── lib/
 │       ├── supabase.js     # Supabase client singleton
-│       ├── auth.js         # Sign in, sign up, sign out, session state
+│       ├── auth.js         # Sign in, sign up, sign out, session + profile role
 │       ├── movies.js       # Movies CRUD and reorder API calls
-│       └── series.js       # Series CRUD and reorder API calls
+│       ├── series.js       # Series CRUD and reorder API calls
+│       └── admin.js        # Admin-only user and content management
 │
 ├── scripts/
 │   └── seed.js             # Populates sample movies/series for all users
 │
 └── supabase/
+    ├── functions/
+    │   └── admin-delete-user/  # Edge Function: delete auth user (admin only)
     └── migrations/         # Versioned SQL schema migrations
 ```
 
@@ -313,6 +343,7 @@ movie-watchlist/
 | `/dashboard` | Auth required | Watchlist statistics |
 | `/movies` | Auth required | Movies kanban board |
 | `/series` | Auth required | Series kanban board |
+| `/admin` | Admin required | User and content management |
 | `/movies/:id/` | Public | Movie detail page |
 
 ---

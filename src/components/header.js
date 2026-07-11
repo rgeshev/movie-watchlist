@@ -1,4 +1,5 @@
-export function renderHeader(user) {
+export function renderHeader(user, profile = null) {
+  const isAdminUser = profile?.role === 'admin'
   const authNav = user
     ? `
       <li class="nav-item">
@@ -49,6 +50,15 @@ export function renderHeader(user) {
               <li class="nav-item">
                 <a class="nav-link" href="/series" data-link>Series</a>
               </li>
+              ${
+                isAdminUser
+                  ? `
+              <li class="nav-item">
+                <a class="nav-link" href="/admin" data-link>Admin</a>
+              </li>
+              `
+                  : ''
+              }
               `
                   : ''
               }

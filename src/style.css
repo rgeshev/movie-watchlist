@@ -715,6 +715,38 @@ a:hover {
   border-left: 4px solid var(--mw-green);
 }
 
+/* ============================================================
+   Admin panel
+   ============================================================ */
+.mw-admin-card {
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  color: var(--mw-text);
+}
+
+.mw-admin-table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--mw-text);
+  --bs-table-hover-color: var(--mw-text);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+  --bs-table-border-color: var(--mw-border);
+}
+
+.mw-admin-role-select {
+  min-width: 6.5rem;
+  max-width: 8rem;
+}
+
+#adminTabs .nav-link {
+  color: var(--mw-text-muted);
+  font-weight: 700;
+}
+
+#adminTabs .nav-link.active {
+  background-color: var(--mw-amber);
+  color: #0b1215;
+}
+
 .mw-toast--warning {
   border-left: 4px solid var(--mw-amber);
 }
