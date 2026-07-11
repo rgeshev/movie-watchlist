@@ -32,32 +32,10 @@ CREATE TABLE public.movies (
   CONSTRAINT movies_position_check CHECK (position >= 0)
 );
 
--- User series watchlist items
-CREATE TABLE public.series (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES public.profiles (id) ON DELETE CASCADE,
-  title text NOT NULL,
-  description text,
-  poster_url text,
-  genre_id smallint REFERENCES public.genres (id) ON DELETE SET NULL,
-  year smallint,
-  total_seasons smallint,
-  status public.watch_status NOT NULL DEFAULT 'want_to_watch',
-  position integer NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT series_year_check CHECK (year IS NULL OR (year >= 1888 AND year <= 2100)),
-  CONSTRAINT series_total_seasons_check CHECK (total_seasons IS NULL OR total_seasons >= 1),
-  CONSTRAINT series_position_check CHECK (position >= 0)
-);
-
 -- Indexes for common queries
 CREATE INDEX movies_user_id_idx ON public.movies (user_id);
 CREATE INDEX movies_user_id_position_idx ON public.movies (user_id, position);
 CREATE INDEX movies_user_id_status_idx ON public.movies (user_id, status);
-
-CREATE INDEX series_user_id_idx ON public.series (user_id);
-CREATE INDEX series_user_id_position_idx ON public.series (user_id, position);
-CREATE INDEX series_user_id_status_idx ON public.series (user_id, status);
 
 -- Seed common genres
 INSERT INTO public.genres (name) VALUES
@@ -120,7 +98,6 @@ REVOKE ALL ON FUNCTION public.set_updated_at() FROM PUBLIC;
 -- Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.movies ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.series ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.genres ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Profiles are viewable by everyone"
@@ -162,26 +139,5 @@ CREATE POLICY "Users can update their own movies"
 
 CREATE POLICY "Users can delete their own movies"
   ON public.movies
-  FOR DELETE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can view their own series"
-  ON public.series
-  FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert their own series"
-  ON public.series
-  FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own series"
-  ON public.series
-  FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own series"
-  ON public.series
   FOR DELETE
   USING (auth.uid() = user_id);

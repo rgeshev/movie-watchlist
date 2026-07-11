@@ -178,6 +178,14 @@ const seriesTemplates = [
     total_seasons: 2,
     status: 'want_to_watch',
   },
+  {
+    title: 'The Last of Us',
+    description: 'Twenty years after a fungal plague ravaged the planet, a hardened survivor escorts a teenage girl across a post-apocalyptic United States.',
+    genre: 'Drama',
+    year: 2023,
+    total_seasons: 2,
+    status: 'want_to_watch',
+  },
 ]
 
 function buildRows(templates, userId, genreByName, type) {
