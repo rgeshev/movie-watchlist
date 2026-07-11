@@ -718,9 +718,11 @@ export function renderMoviesPage() {
         </p>
       </div>
 
-      <div class="row g-4" id="movies-board">
-        ${renderBoardColumn('want_to_watch', [], true)}
-        ${renderBoardColumn('watched', [], true)}
+      <div class="mw-board-viewport">
+        <div class="row g-4 mw-board" id="movies-board">
+          ${renderBoardColumn('want_to_watch', [], true)}
+          ${renderBoardColumn('watched', [], true)}
+        </div>
       </div>
 
       <div class="modal fade" id="deleteMovieModal" tabindex="-1" aria-labelledby="deleteMovieModalLabel" aria-hidden="true">

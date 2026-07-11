@@ -746,9 +746,11 @@ export function renderSeriesPage() {
         </p>
       </div>
 
-      <div class="row g-4" id="series-board">
-        ${renderBoardColumn('want_to_watch', [], true)}
-        ${renderBoardColumn('watched', [], true)}
+      <div class="mw-board-viewport">
+        <div class="row g-4 mw-board" id="series-board">
+          ${renderBoardColumn('want_to_watch', [], true)}
+          ${renderBoardColumn('watched', [], true)}
+        </div>
       </div>
 
       <div class="modal fade" id="deleteSeriesModal" tabindex="-1" aria-labelledby="deleteSeriesModalLabel" aria-hidden="true">

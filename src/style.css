@@ -283,15 +283,75 @@ a:hover {
 /* ============================================================
    Watchlist board
    ============================================================ */
+.mw-board-viewport {
+  /* header ~5.5rem + list padding 2rem + 5 cards (~4.75rem each) + 4 gaps (0.5rem) */
+  --mw-board-max-height: min(36rem, calc(100vh - 12rem));
+  overflow: auto;
+  max-height: var(--mw-board-max-height);
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mw-surface) var(--mw-bg-elevated);
+}
+
+.mw-board-viewport::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.mw-board-viewport::-webkit-scrollbar-track {
+  background-color: var(--mw-bg-elevated);
+  border-radius: 999px;
+}
+
+.mw-board-viewport::-webkit-scrollbar-thumb {
+  background-color: var(--mw-surface);
+  border-radius: 999px;
+  border: 2px solid var(--mw-bg-elevated);
+}
+
+.mw-board-viewport::-webkit-scrollbar-thumb:hover {
+  background-color: var(--mw-surface-hover);
+}
+
+.mw-board {
+  --mw-board-column-min-width: 18rem;
+  min-width: 100%;
+}
+
+@media (min-width: 992px) {
+  .mw-board {
+    flex-wrap: nowrap !important;
+    width: max-content;
+    min-width: 100%;
+    align-items: stretch;
+  }
+
+  .mw-board > .col-lg-6 {
+    display: flex;
+    flex: 0 0 auto;
+    width: max(50%, var(--mw-board-column-min-width));
+    min-width: var(--mw-board-column-min-width);
+  }
+}
+
 .mw-board-column {
   display: flex;
   flex-direction: column;
-  min-height: 28rem;
-  max-height: calc(100vh - 12rem);
+  width: 100%;
+  min-height: 20rem;
+  max-height: var(--mw-board-max-height, min(36rem, calc(100vh - 12rem)));
   background-color: var(--mw-bg-elevated);
   border: 1px solid var(--mw-border);
   border-radius: 0.75rem;
   overflow: hidden;
+}
+
+@media (min-width: 992px) {
+  .mw-board-column {
+    height: var(--mw-board-max-height, min(36rem, calc(100vh - 12rem)));
+    min-height: 20rem;
+    max-height: var(--mw-board-max-height, min(36rem, calc(100vh - 12rem)));
+  }
 }
 
 .mw-board-column__header {
@@ -299,6 +359,7 @@ a:hover {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  flex-shrink: 0;
   padding: 1.25rem 1.25rem 1rem;
   border-bottom: 1px solid var(--mw-border);
   background-color: rgba(20, 24, 28, 0.65);
@@ -339,8 +400,31 @@ a:hover {
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
-  overflow-y: auto;
-  flex: 1;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mw-surface) var(--mw-bg-elevated);
+}
+
+.mw-board-column__list::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mw-board-column__list::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.mw-board-column__list::-webkit-scrollbar-thumb {
+  background-color: var(--mw-surface);
+  border-radius: 999px;
+}
+
+.mw-board-column__list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--mw-surface-hover);
 }
 
 .mw-board-column__empty {
@@ -381,6 +465,8 @@ a:hover {
 .mw-board-card {
   cursor: grab;
   touch-action: none;
+  flex-shrink: 0;
+  min-width: min(100%, 14rem);
 }
 
 .mw-board-card:active {
