@@ -40,6 +40,18 @@ export function renderHeader(user) {
               <li class="nav-item">
                 <a class="nav-link" href="/dashboard" data-link>Dashboard</a>
               </li>
+              ${
+                user
+                  ? `
+              <li class="nav-item">
+                <a class="nav-link" href="/movies" data-link>Movies</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/series" data-link>Series</a>
+              </li>
+              `
+                  : ''
+              }
               ${authNav}
             </ul>
           </div>
