@@ -10,6 +10,7 @@ const SERIES_SELECT = `
   total_episodes,
   status,
   position,
+  rating,
   genre_id,
   genres ( name )
 `
@@ -59,6 +60,7 @@ export async function createSeries({
   totalSeasons,
   totalEpisodes,
   status,
+  rating,
 }) {
   const supabase = getSupabase()
   const user = getUser()
@@ -87,6 +89,7 @@ export async function createSeries({
       year: year ?? null,
       total_seasons: totalSeasons ?? null,
       total_episodes: totalEpisodes ?? null,
+      rating: rating ?? null,
       status,
       position,
     })
@@ -102,7 +105,7 @@ export async function createSeries({
 
 export async function updateSeries(
   id,
-  { title, description, genreId, year, totalSeasons, totalEpisodes, status },
+  { title, description, genreId, year, totalSeasons, totalEpisodes, status, rating },
   currentStatus,
 ) {
   const supabase = getSupabase()
@@ -118,6 +121,7 @@ export async function updateSeries(
     year: year ?? null,
     total_seasons: totalSeasons ?? null,
     total_episodes: totalEpisodes ?? null,
+    rating: rating ?? null,
     status,
   }
 

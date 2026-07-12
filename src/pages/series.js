@@ -406,6 +406,7 @@ function openSeriesDetailsModal(seriesId) {
   const seasonsValue = querySeries('#series-details-seasons')
   const episodesValue = querySeries('#series-details-episodes')
   const statusValue = querySeries('#series-details-status')
+  const ratingValue = querySeries('#series-details-rating')
 
   const statusLabel = STATUS_CONFIG[item.status]?.label ?? item.status
   const isWatched = item.status === 'watched'
@@ -444,6 +445,11 @@ function openSeriesDetailsModal(seriesId) {
   if (statusValue) {
     statusValue.textContent = statusLabel
     statusValue.className = `mw-details-modal__chip mw-details-modal__chip--status${isWatched ? ' mw-details-modal__chip--watched' : ''}`
+  }
+
+  if (ratingValue) {
+    ratingValue.innerHTML = item.rating ? renderStarDisplay(item.rating) : ''
+    ratingValue.hidden = !item.rating
   }
 
   showModal(querySeries('#seriesDetailsModal'))
@@ -512,6 +518,11 @@ function openEditModal(seriesId) {
     statusField.value = existing.status
   }
 
+  const ratingInput = existing.rating ? querySeries(`#series-star-${existing.rating}`) : null
+  if (ratingInput) {
+    ratingInput.checked = true
+  }
+
   showModal(querySeries('#seriesFormModal'))
 }
 
@@ -522,6 +533,7 @@ function getSeriesFormValues() {
   const genreValue = formData.get('genreId')
   const totalSeasonsValue = formData.get('totalSeasons')
   const totalEpisodesValue = formData.get('totalEpisodes')
+  const ratingValue = formData.get('rating')
 
   return {
     title: String(formData.get('title') ?? '').trim(),
@@ -530,6 +542,7 @@ function getSeriesFormValues() {
     year: yearValue ? Number(yearValue) : null,
     totalSeasons: totalSeasonsValue ? Number(totalSeasonsValue) : null,
     totalEpisodes: totalEpisodesValue ? Number(totalEpisodesValue) : null,
+    rating: ratingValue ? Number(ratingValue) : null,
     status: formData.get('status'),
   }
 }
@@ -693,6 +706,13 @@ function ensureSeriesListeners() {
     const seriesCard = event.target.closest('.mw-board-card[data-series-id]')
     if (seriesCard && page.contains(seriesCard) && !event.target.closest('.mw-poster-card__action')) {
       openSeriesDetailsModal(seriesCard.getAttribute('data-series-id'))
+      return
+    }
+
+    if (event.target.closest('#series-rating-clear')) {
+      document.querySelectorAll('#seriesFormModal input[name="rating"]').forEach((input) => {
+        input.checked = false
+      })
     }
   })
 
@@ -748,6 +768,14 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;')
 }
 
+function renderStarDisplay(rating) {
+  if (!rating) return ''
+  const stars = Array.from({ length: 5 }, (_, i) =>
+    `<span class="mw-star-display__star${i < rating ? '' : ' mw-star-display__star--empty'}">★</span>`,
+  ).join('')
+  return `<span class="mw-star-display" aria-label="${rating} out of 5 stars">${stars}</span>`
+}
+
 function formatSeriesMeta(year, totalSeasons, totalEpisodes) {
   const parts = []
 
@@ -772,6 +800,7 @@ function renderSeriesCard(item) {
   const genre = escapeHtml(item.genres?.name ?? 'Series')
   const title = escapeHtml(item.title)
   const meta = formatSeriesMeta(item.year, item.total_seasons, item.total_episodes)
+  const stars = renderStarDisplay(item.rating)
 
   return `
     <article class="mw-poster-card mw-board-card" data-series-id="${item.id}">
@@ -780,6 +809,7 @@ function renderSeriesCard(item) {
           <span class="mw-poster-card__genre">${genre}</span>
           <h3 class="mw-poster-card__title" title="${title}">${title}</h3>
           ${meta ? `<span class="mw-poster-card__year">${meta}</span>` : ''}
+          ${stars ? `<div class="mw-poster-card__rating">${stars}</div>` : ''}
         </div>
       </div>
       <div class="mw-poster-card__actions">
@@ -879,6 +909,7 @@ export function renderSeriesPage() {
                 <span class="mw-details-modal__chip" id="series-details-episodes"></span>
                 <span class="mw-details-modal__chip mw-details-modal__chip--status" id="series-details-status"></span>
               </div>
+              <div class="mw-details-modal__rating" id="series-details-rating" hidden></div>
             </div>
             <div class="modal-body mw-details-modal__body">
               <p class="mw-details-modal__description" id="series-details-description"></p>
@@ -991,6 +1022,24 @@ export function renderSeriesPage() {
                       <option value="want_to_watch">Want to Watch</option>
                       <option value="watched">Watched</option>
                     </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Your Rating <span class="text-muted fw-normal">(optional)</span></label>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="mw-star-picker">
+                        <input type="radio" name="rating" id="series-star-5" value="5">
+                        <label for="series-star-5" title="5 stars">★</label>
+                        <input type="radio" name="rating" id="series-star-4" value="4">
+                        <label for="series-star-4" title="4 stars">★</label>
+                        <input type="radio" name="rating" id="series-star-3" value="3">
+                        <label for="series-star-3" title="3 stars">★</label>
+                        <input type="radio" name="rating" id="series-star-2" value="2">
+                        <label for="series-star-2" title="2 stars">★</label>
+                        <input type="radio" name="rating" id="series-star-1" value="1">
+                        <label for="series-star-1" title="1 star">★</label>
+                      </div>
+                      <button type="button" class="btn btn-link btn-sm text-muted p-0 mw-star-clear" id="series-rating-clear">Clear</button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -8,6 +8,7 @@ const MOVIE_SELECT = `
   year,
   status,
   position,
+  rating,
   genre_id,
   genres ( name )
 `
@@ -85,7 +86,7 @@ export async function getMovie(id) {
   return { movie: data, error: null }
 }
 
-export async function createMovie({ title, description, genreId, year, status }) {
+export async function createMovie({ title, description, genreId, year, status, rating }) {
   const supabase = getSupabase()
   const user = getUser()
 
@@ -111,6 +112,7 @@ export async function createMovie({ title, description, genreId, year, status })
       description: description?.trim() || null,
       genre_id: genreId || null,
       year: year ?? null,
+      rating: rating ?? null,
       status,
       position,
     })
@@ -124,7 +126,7 @@ export async function createMovie({ title, description, genreId, year, status })
   return { movie: data, error: null }
 }
 
-export async function updateMovie(id, { title, description, genreId, year, status }, currentStatus) {
+export async function updateMovie(id, { title, description, genreId, year, status, rating }, currentStatus) {
   const supabase = getSupabase()
 
   if (!supabase) {
@@ -136,6 +138,7 @@ export async function updateMovie(id, { title, description, genreId, year, statu
     description: description?.trim() || null,
     genre_id: genreId || null,
     year: year ?? null,
+    rating: rating ?? null,
     status,
   }
 

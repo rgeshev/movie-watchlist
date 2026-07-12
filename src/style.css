@@ -926,3 +926,82 @@ a:hover {
   border-radius: 0.35rem;
   background-color: var(--mw-surface);
 }
+
+/* ============================================================
+   Star rating
+   ============================================================ */
+
+/* Interactive star picker (inside forms) */
+.mw-star-picker {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  gap: 0;
+}
+
+.mw-star-picker input[type='radio'] {
+  display: none;
+}
+
+.mw-star-picker label {
+  cursor: pointer;
+  font-size: 1.85rem;
+  line-height: 1;
+  padding: 0 0.06rem;
+  color: var(--mw-surface-hover);
+  transition: color 0.1s ease;
+  user-select: none;
+}
+
+/* Checked: highlight the checked star's label and all lower-value labels (DOM-after = visually-before) */
+.mw-star-picker:not(:hover) input[type='radio']:checked ~ label {
+  color: var(--mw-amber);
+}
+
+/* Hover: highlight the hovered star and all lower-value stars */
+.mw-star-picker label:hover,
+.mw-star-picker label:hover ~ label {
+  color: var(--mw-amber);
+}
+
+/* Clear button */
+.mw-star-clear {
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.mw-star-clear:hover {
+  color: var(--mw-text-muted) !important;
+}
+
+/* Read-only star display (cards + detail modal) */
+.mw-star-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.mw-star-display__star {
+  color: var(--mw-amber);
+}
+
+.mw-star-display__star--empty {
+  color: var(--mw-surface-hover);
+}
+
+/* Rating row inside card info */
+.mw-poster-card__rating {
+  margin-top: 0.2rem;
+}
+
+/* Rating row inside detail modal header */
+.mw-details-modal__rating {
+  margin-top: 0.6rem;
+  font-size: 1.25rem;
+}
+
+.mw-details-modal__rating .mw-star-display {
+  font-size: 1.25rem;
+  gap: 1px;
+}

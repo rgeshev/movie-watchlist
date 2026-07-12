@@ -404,6 +404,7 @@ function openDetailsModal(movieId) {
   const genreValue = queryMovies('#movie-details-genre')
   const yearValue = queryMovies('#movie-details-year')
   const statusValue = queryMovies('#movie-details-status')
+  const ratingValue = queryMovies('#movie-details-rating')
 
   const statusLabel = STATUS_CONFIG[movie.status]?.label ?? movie.status
   const isWatched = movie.status === 'watched'
@@ -430,6 +431,11 @@ function openDetailsModal(movieId) {
   if (statusValue) {
     statusValue.textContent = statusLabel
     statusValue.className = `mw-details-modal__chip mw-details-modal__chip--status${isWatched ? ' mw-details-modal__chip--watched' : ''}`
+  }
+
+  if (ratingValue) {
+    ratingValue.innerHTML = movie.rating ? renderStarDisplay(movie.rating) : ''
+    ratingValue.hidden = !movie.rating
   }
 
   showModal(queryMovies('#movieDetailsModal'))
@@ -488,6 +494,11 @@ function openEditModal(movieId) {
     statusField.value = existing.status
   }
 
+  const ratingInput = existing.rating ? queryMovies(`#movie-star-${existing.rating}`) : null
+  if (ratingInput) {
+    ratingInput.checked = true
+  }
+
   showModal(queryMovies('#movieFormModal'))
 }
 
@@ -496,12 +507,14 @@ function getMovieFormValues() {
   const formData = new FormData(movieForm)
   const yearValue = formData.get('year')
   const genreValue = formData.get('genreId')
+  const ratingValue = formData.get('rating')
 
   return {
     title: String(formData.get('title') ?? '').trim(),
     description: String(formData.get('description') ?? '').trim(),
     genreId: genreValue ? Number(genreValue) : null,
     year: yearValue ? Number(yearValue) : null,
+    rating: ratingValue ? Number(ratingValue) : null,
     status: formData.get('status'),
   }
 }
@@ -667,6 +680,13 @@ function ensureMoviesListeners() {
 
     if (event.target.closest('#confirm-delete-movie')) {
       handleDelete()
+      return
+    }
+
+    if (event.target.closest('#movie-rating-clear')) {
+      document.querySelectorAll('#movieFormModal input[name="rating"]').forEach((input) => {
+        input.checked = false
+      })
     }
   })
 
@@ -726,10 +746,19 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;')
 }
 
+function renderStarDisplay(rating) {
+  if (!rating) return ''
+  const stars = Array.from({ length: 5 }, (_, i) =>
+    `<span class="mw-star-display__star${i < rating ? '' : ' mw-star-display__star--empty'}">★</span>`,
+  ).join('')
+  return `<span class="mw-star-display" aria-label="${rating} out of 5 stars">${stars}</span>`
+}
+
 function renderMovieCard(movie) {
   const genre = escapeHtml(movie.genres?.name ?? 'Film')
   const title = escapeHtml(movie.title)
   const year = movie.year ? escapeHtml(movie.year) : ''
+  const stars = renderStarDisplay(movie.rating)
 
   return `
     <article class="mw-poster-card mw-board-card" data-movie-id="${movie.id}">
@@ -738,6 +767,7 @@ function renderMovieCard(movie) {
           <span class="mw-poster-card__genre">${genre}</span>
           <h3 class="mw-poster-card__title" title="${title}">${title}</h3>
           ${year ? `<span class="mw-poster-card__year">${year}</span>` : ''}
+          ${stars ? `<div class="mw-poster-card__rating">${stars}</div>` : ''}
         </div>
       </div>
       <div class="mw-poster-card__actions">
@@ -855,6 +885,7 @@ export function renderMoviesPage() {
                 <span class="mw-details-modal__chip" id="movie-details-year"></span>
                 <span class="mw-details-modal__chip mw-details-modal__chip--status" id="movie-details-status"></span>
               </div>
+              <div class="mw-details-modal__rating" id="movie-details-rating" hidden></div>
             </div>
             <div class="modal-body mw-details-modal__body">
               <p class="mw-details-modal__description" id="movie-details-description"></p>
@@ -923,6 +954,24 @@ export function renderMoviesPage() {
                       <option value="want_to_watch">Want to Watch</option>
                       <option value="watched">Watched</option>
                     </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Your Rating <span class="text-muted fw-normal">(optional)</span></label>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="mw-star-picker">
+                        <input type="radio" name="rating" id="movie-star-5" value="5">
+                        <label for="movie-star-5" title="5 stars">★</label>
+                        <input type="radio" name="rating" id="movie-star-4" value="4">
+                        <label for="movie-star-4" title="4 stars">★</label>
+                        <input type="radio" name="rating" id="movie-star-3" value="3">
+                        <label for="movie-star-3" title="3 stars">★</label>
+                        <input type="radio" name="rating" id="movie-star-2" value="2">
+                        <label for="movie-star-2" title="2 stars">★</label>
+                        <input type="radio" name="rating" id="movie-star-1" value="1">
+                        <label for="movie-star-1" title="1 star">★</label>
+                      </div>
+                      <button type="button" class="btn btn-link btn-sm text-muted p-0 mw-star-clear" id="movie-rating-clear">Clear</button>
+                    </div>
                   </div>
                 </div>
               </div>
