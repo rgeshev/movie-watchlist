@@ -65,11 +65,12 @@ function hideModal(element) {
 
 function mountMoviesModals(root) {
   document
-    .querySelectorAll('body > #movieFormModal, body > #deleteMovieModal')
+    .querySelectorAll('body > #movieFormModal, body > #deleteMovieModal, body > #movieDetailsModal')
     .forEach((node) => node.remove())
 
   const movieModal = root.querySelector('#movieFormModal')
   const deleteModal = root.querySelector('#deleteMovieModal')
+  const detailsModal = root.querySelector('#movieDetailsModal')
 
   if (movieModal) {
     document.body.appendChild(movieModal)
@@ -77,6 +78,10 @@ function mountMoviesModals(root) {
 
   if (deleteModal) {
     document.body.appendChild(deleteModal)
+  }
+
+  if (detailsModal) {
+    document.body.appendChild(detailsModal)
   }
 }
 
@@ -92,6 +97,7 @@ const moviesPageState = {
 
 let moviesListenersReady = false
 let sortableInstances = []
+let skipNextMovieCardClick = false
 
 function queryMovies(selector) {
   return document.querySelector(selector)
@@ -295,6 +301,9 @@ function initBoardSortable() {
         },
         onEnd(event) {
           clearBoardDragHighlights()
+          if (event.oldIndex !== event.newIndex || event.from !== event.to) {
+            skipNextMovieCardClick = true
+          }
           handleBoardSortEnd(event)
         },
         onAdd() {
@@ -367,6 +376,58 @@ function openAddModal(status = 'want_to_watch') {
 
 function closeMovieFormModal() {
   hideModal(queryMovies('#movieFormModal'))
+}
+
+function formatDetailValue(value, fallback = '—') {
+  if (value === null || value === undefined || value === '') {
+    return fallback
+  }
+
+  return escapeHtml(value)
+}
+
+function openDetailsModal(movieId) {
+  const movie = moviesPageState.movies.find((item) => item.id === movieId)
+
+  if (!movie) {
+    toast.error('Could not find that movie.')
+    return
+  }
+
+  const titleElement = queryMovies('#movieDetailsModalLabel')
+  const descriptionValue = queryMovies('#movie-details-description')
+  const genreValue = queryMovies('#movie-details-genre')
+  const yearValue = queryMovies('#movie-details-year')
+  const statusValue = queryMovies('#movie-details-status')
+
+  const statusLabel = STATUS_CONFIG[movie.status]?.label ?? movie.status
+  const isWatched = movie.status === 'watched'
+
+  if (titleElement) {
+    titleElement.textContent = movie.title
+  }
+
+  if (descriptionValue) {
+    descriptionValue.textContent = movie.description?.trim() || 'No description provided.'
+    descriptionValue.classList.toggle('mw-details-modal__description--empty', !movie.description?.trim())
+  }
+
+  if (genreValue) {
+    genreValue.textContent = movie.genres?.name ?? 'Film'
+  }
+
+  if (yearValue) {
+    const yr = formatDetailValue(movie.year)
+    yearValue.textContent = yr
+    yearValue.hidden = yr === '—'
+  }
+
+  if (statusValue) {
+    statusValue.textContent = statusLabel
+    statusValue.className = `mw-details-modal__chip mw-details-modal__chip--status${isWatched ? ' mw-details-modal__chip--watched' : ''}`
+  }
+
+  showModal(queryMovies('#movieDetailsModal'))
 }
 
 function openEditModal(movieId) {
@@ -583,6 +644,17 @@ function ensureMoviesListeners() {
       return
     }
 
+    if (skipNextMovieCardClick) {
+      skipNextMovieCardClick = false
+      return
+    }
+
+    const movieCard = event.target.closest('.mw-board-card[data-movie-id]')
+    if (movieCard && page.contains(movieCard) && !event.target.closest('.mw-poster-card__action')) {
+      openDetailsModal(movieCard.getAttribute('data-movie-id'))
+      return
+    }
+
     if (event.target.closest('#confirm-delete-movie')) {
       handleDelete()
     }
@@ -592,6 +664,23 @@ function ensureMoviesListeners() {
     if (event.target instanceof HTMLFormElement && event.target.id === 'movie-form') {
       handleMovieFormSubmit(event)
     }
+  })
+
+  document.addEventListener('keydown', (event) => {
+    const page = moviesPageState.root?.querySelector('#movies-page')
+
+    if (!page || (event.key !== 'Enter' && event.key !== ' ')) {
+      return
+    }
+
+    const viewTarget = event.target.closest('[data-view-movie]')
+
+    if (!viewTarget || !page.contains(viewTarget)) {
+      return
+    }
+
+    event.preventDefault()
+    openDetailsModal(viewTarget.getAttribute('data-view-movie'))
   })
 
   document.addEventListener('hidden.bs.modal', (event) => {
@@ -634,7 +723,7 @@ function renderMovieCard(movie) {
 
   return `
     <article class="mw-poster-card mw-board-card" data-movie-id="${movie.id}">
-      <div class="mw-poster-card__body">
+      <div class="mw-poster-card__body mw-board-card__view" data-view-movie="${movie.id}" role="button" tabindex="0" aria-label="View details for ${title}">
         <div class="mw-poster-card__info">
           <span class="mw-poster-card__genre">${genre}</span>
           <h3 class="mw-poster-card__title" title="${title}">${title}</h3>
@@ -740,6 +829,28 @@ export function renderMoviesPage() {
             <div class="modal-footer">
               <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
               <button type="button" class="btn btn-danger" id="confirm-delete-movie">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="movieDetailsModal" tabindex="-1" aria-labelledby="movieDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+          <div class="modal-content mw-modal mw-details-modal">
+            <div class="mw-details-modal__header">
+              <button type="button" class="btn-close btn-close-white mw-details-modal__close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <p class="mw-details-modal__eyebrow" id="movie-details-genre"></p>
+              <h2 class="mw-details-modal__title" id="movieDetailsModalLabel"></h2>
+              <div class="mw-details-modal__meta">
+                <span class="mw-details-modal__chip" id="movie-details-year"></span>
+                <span class="mw-details-modal__chip mw-details-modal__chip--status" id="movie-details-status"></span>
+              </div>
+            </div>
+            <div class="modal-body mw-details-modal__body">
+              <p class="mw-details-modal__description" id="movie-details-description"></p>
+            </div>
+            <div class="modal-footer mw-details-modal__footer">
+              <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>

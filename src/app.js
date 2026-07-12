@@ -42,7 +42,31 @@ export async function initApp() {
     toast.error('Could not restore your session. Please sign in again.')
   }
 
+  function closeAllModals() {
+    document.querySelectorAll('.modal.show').forEach((el) => {
+      window.bootstrap?.Modal.getInstance(el)?.hide()
+    })
+    document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove())
+    document.body.classList.remove('modal-open')
+    document.body.style.removeProperty('overflow')
+    document.body.style.removeProperty('padding-right')
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const hasOrphanedBackdrop =
+        document.querySelectorAll('.modal-backdrop').length > 0 &&
+        document.querySelectorAll('.modal.show').length === 0
+
+      if (hasOrphanedBackdrop) {
+        closeAllModals()
+      }
+    }
+  })
+
   function render() {
+    closeAllModals()
+
     const user = getUser()
     const pathname = normalizePath(window.location.pathname)
 

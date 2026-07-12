@@ -65,11 +65,12 @@ function hideModal(element) {
 
 function mountSeriesModals(root) {
   document
-    .querySelectorAll('body > #seriesFormModal, body > #deleteSeriesModal')
+    .querySelectorAll('body > #seriesFormModal, body > #deleteSeriesModal, body > #seriesDetailsModal')
     .forEach((node) => node.remove())
 
   const seriesModal = root.querySelector('#seriesFormModal')
   const deleteModal = root.querySelector('#deleteSeriesModal')
+  const detailsModal = root.querySelector('#seriesDetailsModal')
 
   if (seriesModal) {
     document.body.appendChild(seriesModal)
@@ -77,6 +78,10 @@ function mountSeriesModals(root) {
 
   if (deleteModal) {
     document.body.appendChild(deleteModal)
+  }
+
+  if (detailsModal) {
+    document.body.appendChild(detailsModal)
   }
 }
 
@@ -92,6 +97,7 @@ const seriesPageState = {
 
 let seriesListenersReady = false
 let sortableInstances = []
+let skipNextSeriesCardClick = false
 
 function querySeries(selector) {
   return document.querySelector(selector)
@@ -295,6 +301,9 @@ function initBoardSortable() {
         },
         onEnd(event) {
           clearBoardDragHighlights()
+          if (event.oldIndex !== event.newIndex || event.from !== event.to) {
+            skipNextSeriesCardClick = true
+          }
           handleBoardSortEnd(event)
         },
         onAdd() {
@@ -367,6 +376,72 @@ function openAddModal(status = 'want_to_watch') {
 
 function closeSeriesFormModal() {
   hideModal(querySeries('#seriesFormModal'))
+}
+
+function formatDetailValue(value, fallback = '—') {
+  if (value === null || value === undefined || value === '') {
+    return fallback
+  }
+
+  return escapeHtml(value)
+}
+
+function openSeriesDetailsModal(seriesId) {
+  const item = seriesPageState.series.find((s) => s.id === seriesId)
+
+  if (!item) {
+    toast.error('Could not find that series.')
+    return
+  }
+
+  const titleElement = querySeries('#seriesDetailsModalLabel')
+  const descriptionValue = querySeries('#series-details-description')
+  const genreValue = querySeries('#series-details-genre')
+  const yearValue = querySeries('#series-details-year')
+  const seasonsValue = querySeries('#series-details-seasons')
+  const episodesValue = querySeries('#series-details-episodes')
+  const statusValue = querySeries('#series-details-status')
+
+  const statusLabel = STATUS_CONFIG[item.status]?.label ?? item.status
+  const isWatched = item.status === 'watched'
+
+  if (titleElement) {
+    titleElement.textContent = item.title
+  }
+
+  if (descriptionValue) {
+    descriptionValue.textContent = item.description?.trim() || 'No description provided.'
+    descriptionValue.classList.toggle('mw-details-modal__description--empty', !item.description?.trim())
+  }
+
+  if (genreValue) {
+    genreValue.textContent = item.genres?.name ?? 'Series'
+  }
+
+  if (yearValue) {
+    const yr = formatDetailValue(item.year)
+    yearValue.textContent = yr
+    yearValue.hidden = yr === '—'
+  }
+
+  if (seasonsValue) {
+    const val = item.total_seasons
+    seasonsValue.textContent = val ? `${escapeHtml(val)} ${val === 1 ? 'season' : 'seasons'}` : ''
+    seasonsValue.hidden = !val
+  }
+
+  if (episodesValue) {
+    const val = item.total_episodes
+    episodesValue.textContent = val ? `${escapeHtml(val)} ${val === 1 ? 'episode' : 'episodes'}` : ''
+    episodesValue.hidden = !val
+  }
+
+  if (statusValue) {
+    statusValue.textContent = statusLabel
+    statusValue.className = `mw-details-modal__chip mw-details-modal__chip--status${isWatched ? ' mw-details-modal__chip--watched' : ''}`
+  }
+
+  showModal(querySeries('#seriesDetailsModal'))
 }
 
 function openEditModal(seriesId) {
@@ -597,6 +672,17 @@ function ensureSeriesListeners() {
 
     if (event.target.closest('#confirm-delete-series')) {
       handleDelete()
+      return
+    }
+
+    if (skipNextSeriesCardClick) {
+      skipNextSeriesCardClick = false
+      return
+    }
+
+    const seriesCard = event.target.closest('.mw-board-card[data-series-id]')
+    if (seriesCard && page.contains(seriesCard) && !event.target.closest('.mw-poster-card__action')) {
+      openSeriesDetailsModal(seriesCard.getAttribute('data-series-id'))
     }
   })
 
@@ -604,6 +690,23 @@ function ensureSeriesListeners() {
     if (event.target instanceof HTMLFormElement && event.target.id === 'series-form') {
       handleSeriesFormSubmit(event)
     }
+  })
+
+  document.addEventListener('keydown', (event) => {
+    const page = seriesPageState.root?.querySelector('#series-page')
+
+    if (!page || (event.key !== 'Enter' && event.key !== ' ')) {
+      return
+    }
+
+    const viewTarget = event.target.closest('[data-view-series]')
+
+    if (!viewTarget || !page.contains(viewTarget)) {
+      return
+    }
+
+    event.preventDefault()
+    openSeriesDetailsModal(viewTarget.getAttribute('data-view-series'))
   })
 
   document.addEventListener('hidden.bs.modal', (event) => {
@@ -662,7 +765,7 @@ function renderSeriesCard(item) {
 
   return `
     <article class="mw-poster-card mw-board-card" data-series-id="${item.id}">
-      <div class="mw-poster-card__body">
+      <div class="mw-poster-card__body mw-board-card__view" data-view-series="${item.id}" role="button" tabindex="0" aria-label="View details for ${title}">
         <div class="mw-poster-card__info">
           <span class="mw-poster-card__genre">${genre}</span>
           <h3 class="mw-poster-card__title" title="${title}">${title}</h3>
@@ -750,6 +853,30 @@ export function renderSeriesPage() {
         <div class="row g-4 mw-board" id="series-board">
           ${renderBoardColumn('want_to_watch', [], true)}
           ${renderBoardColumn('watched', [], true)}
+        </div>
+      </div>
+
+      <div class="modal fade" id="seriesDetailsModal" tabindex="-1" aria-labelledby="seriesDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+          <div class="modal-content mw-modal mw-details-modal">
+            <div class="mw-details-modal__header">
+              <button type="button" class="btn-close btn-close-white mw-details-modal__close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <p class="mw-details-modal__eyebrow" id="series-details-genre"></p>
+              <h2 class="mw-details-modal__title" id="seriesDetailsModalLabel"></h2>
+              <div class="mw-details-modal__meta">
+                <span class="mw-details-modal__chip" id="series-details-year"></span>
+                <span class="mw-details-modal__chip" id="series-details-seasons"></span>
+                <span class="mw-details-modal__chip" id="series-details-episodes"></span>
+                <span class="mw-details-modal__chip mw-details-modal__chip--status" id="series-details-status"></span>
+              </div>
+            </div>
+            <div class="modal-body mw-details-modal__body">
+              <p class="mw-details-modal__description" id="series-details-description"></p>
+            </div>
+            <div class="modal-footer mw-details-modal__footer">
+              <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
         </div>
       </div>
 
