@@ -71,7 +71,7 @@ export async function initApp() {
     const pathname = normalizePath(window.location.pathname)
 
     if (pathname === '/login' && user) {
-      router.navigate('/dashboard')
+      router.navigate('/')
       return
     }
 
@@ -88,6 +88,7 @@ export async function initApp() {
     }
 
     const { render: renderPage, params } = router.resolve()
+    const pageParams = { ...params, user }
     const configWarning = !isSupabaseConfigured()
       ? `
         <div class="container pt-3">
@@ -99,7 +100,7 @@ export async function initApp() {
       `
       : ''
 
-    app.innerHTML = renderLayout(configWarning + renderPage(params), user, getProfile())
+    app.innerHTML = renderLayout(configWarning + renderPage(pageParams), user, getProfile())
     bindLayout(app, router)
 
     if (pathname === '/login') {

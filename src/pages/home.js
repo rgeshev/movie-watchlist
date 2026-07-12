@@ -68,7 +68,23 @@ function featureCard({ icon, title, text }) {
   `
 }
 
-export function renderHomePage() {
+export function renderHomePage({ user } = {}) {
+  const ctaSection = user
+    ? ''
+    : `
+    <section class="mw-section pt-0">
+      <div class="container">
+        <div class="mw-cta text-center">
+          <h2 class="mw-section__title mb-3">Ready to build your watchlist?</h2>
+          <p class="mw-section__subtitle mb-4">
+            Join now and start tracking the films and series you care about.
+          </p>
+          <a href="/login" data-link class="btn btn-primary btn-lg">Create your account</a>
+        </div>
+      </div>
+    </section>
+  `
+
   return `
     <section class="mw-hero">
       <div class="container">
@@ -107,19 +123,6 @@ export function renderHomePage() {
       </div>
     </section>
 
-    <section class="mw-section pt-0">
-      <div class="container">
-        <div class="mw-cta text-center">
-          <h2 class="mw-section__title mb-3">Ready to build your watchlist?</h2>
-          <p class="mw-section__subtitle mb-4">
-            Join now and start tracking the films and series you care about.
-          </p>
-          <div class="d-flex flex-wrap justify-content-center gap-3">
-            <a href="/login" data-link class="btn btn-primary btn-lg">Create your account</a>
-            <a href="/dashboard" data-link class="btn btn-accent btn-lg">See a demo</a>
-          </div>
-        </div>
-      </div>
-    </section>
+    ${ctaSection}
   `
 }

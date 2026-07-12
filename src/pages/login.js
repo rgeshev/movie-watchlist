@@ -191,7 +191,7 @@ export function bindLoginPage(root, router) {
       return
     }
 
-    router.navigate('/dashboard')
+    router.navigate('/')
   })
 
   registerForm.addEventListener('submit', async (event) => {
@@ -227,7 +227,7 @@ export function bindLoginPage(root, router) {
     }
 
     if (data.session) {
-      router.navigate('/dashboard')
+      router.navigate('/')
       return
     }
 
