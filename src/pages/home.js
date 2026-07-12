@@ -45,12 +45,10 @@ const features = [
   },
 ]
 
-function posterCard({ title, year, genre, status, label }) {
+function posterCard({ title, year }) {
   return `
     <div class="mw-poster-card">
-      <span class="mw-poster-badge ${status}">${label}</span>
       <div class="mw-poster-card__body">
-        <span class="mw-poster-card__genre">${genre}</span>
         <h3 class="mw-poster-card__title">${title}</h3>
         <span class="mw-poster-card__year">${year}</span>
       </div>
@@ -74,8 +72,8 @@ export function renderHomePage() {
   return `
     <section class="mw-hero">
       <div class="container">
-        <div class="row align-items-center g-5">
-          <div class="col-lg-6">
+        <div class="row justify-content-center">
+          <div class="col-lg-7 text-center">
             <p class="mw-hero__eyebrow mb-3">Your personal film diary</p>
             <h1 class="mw-hero__title mb-4">
               Track the films you
@@ -88,14 +86,9 @@ export function renderHomePage() {
               movies and series by genre, year, and status &mdash; all in one
               beautifully simple place.
             </p>
-            <div class="d-flex flex-wrap gap-3">
+            <div class="d-flex flex-wrap justify-content-center gap-3">
               <a href="/login" data-link class="btn btn-primary btn-lg">Get started &mdash; it's free</a>
               <a href="/dashboard" data-link class="btn btn-outline-light btn-lg">Explore dashboard</a>
-            </div>
-          </div>
-          <div class="col-lg-6">
-            <div class="mw-hero__posters">
-              ${heroPosters.map(posterCard).join('')}
             </div>
           </div>
         </div>

@@ -371,6 +371,11 @@ function openAddModal(status = 'want_to_watch') {
     statusField.value = status
   }
 
+  const statusFieldWrapper = queryMovies('#movie-status-field')
+  if (statusFieldWrapper) {
+    statusFieldWrapper.classList.add('d-none')
+  }
+
   showModal(queryMovies('#movieFormModal'))
 }
 
@@ -441,6 +446,11 @@ function openEditModal(movieId) {
   resetMovieForm()
   moviesPageState.editingMovieId = movieId
   moviesPageState.editingMovieStatus = existing.status
+
+  const statusFieldWrapper = queryMovies('#movie-status-field')
+  if (statusFieldWrapper) {
+    statusFieldWrapper.classList.remove('d-none')
+  }
 
   const movieFormTitle = queryMovies('#movieFormModalLabel')
   const movieFormSubmit = queryMovies('#movie-form-submit')
@@ -907,7 +917,7 @@ export function renderMoviesPage() {
                       placeholder="e.g. 2024"
                     />
                   </div>
-                  <div class="col-12">
+                  <div class="col-12" id="movie-status-field">
                     <label for="movie-status" class="form-label">Status</label>
                     <select class="form-select" id="movie-status" name="status" required>
                       <option value="want_to_watch">Want to Watch</option>

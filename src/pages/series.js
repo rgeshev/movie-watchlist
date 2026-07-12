@@ -371,6 +371,11 @@ function openAddModal(status = 'want_to_watch') {
     statusField.value = status
   }
 
+  const statusFieldWrapper = querySeries('#series-status-field')
+  if (statusFieldWrapper) {
+    statusFieldWrapper.classList.add('d-none')
+  }
+
   showModal(querySeries('#seriesFormModal'))
 }
 
@@ -455,6 +460,11 @@ function openEditModal(seriesId) {
   resetSeriesForm()
   seriesPageState.editingSeriesId = seriesId
   seriesPageState.editingSeriesStatus = existing.status
+
+  const statusFieldWrapper = querySeries('#series-status-field')
+  if (statusFieldWrapper) {
+    statusFieldWrapper.classList.remove('d-none')
+  }
 
   const seriesFormTitle = querySeries('#seriesFormModalLabel')
   const seriesFormSubmit = querySeries('#series-form-submit')
@@ -975,7 +985,7 @@ export function renderSeriesPage() {
                       placeholder="e.g. 24"
                     />
                   </div>
-                  <div class="col-12">
+                  <div class="col-12" id="series-status-field">
                     <label for="series-status" class="form-label">Status</label>
                     <select class="form-select" id="series-status" name="status" required>
                       <option value="want_to_watch">Want to Watch</option>
