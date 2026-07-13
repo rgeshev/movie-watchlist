@@ -93,6 +93,8 @@ const seriesPageState = {
   editingSeriesId: null,
   editingSeriesStatus: null,
   pendingDeleteId: null,
+  searchQuery: '',
+  genreFilter: '',
 }
 
 let seriesListenersReady = false
@@ -129,21 +131,26 @@ function syncEmptyColumnStates() {
   const lists = getBoard()?.querySelectorAll('[data-column-list]') ?? []
 
   lists.forEach((list) => {
-    const hasCards = list.querySelector('.mw-board-card')
-    const emptyElement = list.querySelector('.mw-board-column__empty')
+    const hasVisibleCards = list.querySelector('.mw-board-card:not(.d-none)')
+    const emptyElement = list.querySelector('.mw-board-column__empty:not([data-filter-empty])')
 
-    if (hasCards && emptyElement) {
+    if (hasVisibleCards && emptyElement) {
       emptyElement.remove()
       return
     }
 
-    if (!hasCards && !emptyElement) {
+    if (!hasVisibleCards && !emptyElement && !hasSeriesFilter()) {
       list.insertAdjacentHTML('beforeend', EMPTY_COLUMN_MESSAGE)
     }
   })
 }
 
 function updateColumnCounts() {
+  if (hasSeriesFilter()) {
+    applySeriesFilter()
+    return
+  }
+
   const grouped = groupSeriesByStatus(seriesPageState.series)
 
   Object.entries(grouped).forEach(([status, items]) => {
@@ -323,6 +330,7 @@ function refreshBoard() {
   if (board) {
     board.innerHTML = renderBoard(seriesPageState.series)
     initBoardSortable()
+    applySeriesFilter()
   }
 }
 
@@ -341,6 +349,102 @@ function populateGenreOptions() {
     .join('')
 
   genreSelect.innerHTML = `<option value="">Select a genre</option>${options}`
+}
+
+function hasSeriesFilter() {
+  return seriesPageState.searchQuery !== '' || seriesPageState.genreFilter !== ''
+}
+
+function applySeriesFilter() {
+  const query = seriesPageState.searchQuery.toLowerCase().trim()
+  const genreFilter = seriesPageState.genreFilter
+  const active = query !== '' || genreFilter !== ''
+
+  const board = getBoard()
+  if (!board) return
+
+  const visiblePerColumn = { want_to_watch: 0, watched: 0 }
+
+  board.querySelectorAll('.mw-board-card[data-series-id]').forEach((card) => {
+    const seriesId = card.getAttribute('data-series-id')
+    const item = seriesPageState.series.find((s) => s.id === seriesId)
+
+    const visible =
+      !active ||
+      (item &&
+        (!query || item.title.toLowerCase().includes(query)) &&
+        (!genreFilter || String(item.genre_id) === genreFilter))
+
+    card.classList.toggle('d-none', !visible)
+    if (visible && item) {
+      visiblePerColumn[item.status] = (visiblePerColumn[item.status] ?? 0) + 1
+    }
+  })
+
+  ;['want_to_watch', 'watched'].forEach((status) => {
+    const col = board.querySelector(`[data-board-column="${status}"]`)
+    if (!col) return
+
+    const countEl = col.querySelector('[data-column-count]')
+    const list = col.querySelector('[data-column-list]')
+    const visible = visiblePerColumn[status] ?? 0
+    const total = seriesPageState.series.filter((s) => s.status === status).length
+
+    if (countEl) {
+      const label = total === 1 ? 'title' : 'titles'
+      countEl.textContent = active ? `${visible} of ${total} ${label}` : `${total} ${label}`
+    }
+
+    if (list) {
+      const filterEmptyEl = list.querySelector('[data-filter-empty]')
+      const columnEmptyEl = list.querySelector('.mw-board-column__empty:not([data-filter-empty])')
+
+      if (active && visible === 0 && total > 0) {
+        if (columnEmptyEl) columnEmptyEl.classList.add('d-none')
+        if (!filterEmptyEl) {
+          list.insertAdjacentHTML(
+            'beforeend',
+            '<p class="mw-board-column__empty text-muted mb-0" data-filter-empty>No series match your filters.</p>',
+          )
+        } else {
+          filterEmptyEl.classList.remove('d-none')
+        }
+      } else {
+        if (filterEmptyEl) filterEmptyEl.classList.add('d-none')
+        if (columnEmptyEl) columnEmptyEl.classList.remove('d-none')
+      }
+    }
+  })
+
+  const clearBtn = seriesPageState.root?.querySelector('#series-filter-clear')
+  if (clearBtn) {
+    clearBtn.classList.toggle('d-none', !active)
+  }
+}
+
+function populateSeriesGenreFilter() {
+  const genreSelect = seriesPageState.root?.querySelector('#series-genre-filter')
+  if (!genreSelect) return
+
+  const options = seriesPageState.genres
+    .map((genre) => `<option value="${genre.id}">${escapeHtml(genre.name)}</option>`)
+    .join('')
+
+  genreSelect.innerHTML = `<option value="">All genres</option>${options}`
+  genreSelect.value = seriesPageState.genreFilter
+}
+
+function clearSeriesFilter() {
+  seriesPageState.searchQuery = ''
+  seriesPageState.genreFilter = ''
+
+  const searchInput = seriesPageState.root?.querySelector('#series-search')
+  const genreSelect = seriesPageState.root?.querySelector('#series-genre-filter')
+
+  if (searchInput) searchInput.value = ''
+  if (genreSelect) genreSelect.value = ''
+
+  applySeriesFilter()
 }
 
 function resetSeriesForm() {
@@ -668,10 +772,36 @@ function ensureSeriesListeners() {
 
   seriesListenersReady = true
 
+  document.addEventListener('input', (event) => {
+    const page = seriesPageState.root?.querySelector('#series-page')
+    if (!page) return
+
+    if (event.target.id === 'series-search' && page.contains(event.target)) {
+      seriesPageState.searchQuery = event.target.value
+      applySeriesFilter()
+    }
+  })
+
+  document.addEventListener('change', (event) => {
+    const page = seriesPageState.root?.querySelector('#series-page')
+    if (!page) return
+
+    if (event.target.id === 'series-genre-filter' && page.contains(event.target)) {
+      seriesPageState.genreFilter = event.target.value
+      applySeriesFilter()
+    }
+  })
+
   document.addEventListener('click', (event) => {
     const page = seriesPageState.root?.querySelector('#series-page')
 
     if (!page) {
+      return
+    }
+
+    const clearFilterBtn = event.target.closest('#series-filter-clear')
+    if (clearFilterBtn && page.contains(clearFilterBtn)) {
+      clearSeriesFilter()
       return
     }
 
@@ -889,6 +1019,36 @@ export function renderSeriesPage() {
         </p>
       </div>
 
+      <div class="mw-board-filters mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-sm">
+            <input
+              type="search"
+              class="form-control form-control-sm"
+              id="series-search"
+              placeholder="Search series…"
+              autocomplete="off"
+              aria-label="Search series"
+            />
+          </div>
+          <div class="col-12 col-sm-auto mw-filter-genre-col">
+            <select class="form-select form-select-sm" id="series-genre-filter" aria-label="Filter by genre">
+              <option value="">All genres</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-light d-none"
+              id="series-filter-clear"
+              aria-label="Clear filters"
+            >
+              &#10005; Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="mw-board-viewport">
         <div class="row g-4 mw-board" id="series-board">
           ${renderBoardColumn('want_to_watch', [], true)}
@@ -1073,6 +1233,8 @@ export async function bindSeriesPage(root) {
   seriesPageState.pendingDeleteId = null
   seriesPageState.editingSeriesId = null
   seriesPageState.editingSeriesStatus = null
+  seriesPageState.searchQuery = ''
+  seriesPageState.genreFilter = ''
 
   mountSeriesModals(root)
 
@@ -1088,6 +1250,7 @@ export async function bindSeriesPage(root) {
   } else {
     seriesPageState.genres = fetchedGenres ?? []
     populateGenreOptions()
+    populateSeriesGenreFilter()
   }
 
   if (error) {

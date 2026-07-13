@@ -296,6 +296,20 @@ a:hover {
 }
 
 /* ============================================================
+   Board filters
+   ============================================================ */
+.mw-board-filters {
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.mw-filter-genre-col {
+  min-width: 10rem;
+}
+
+/* ============================================================
    Watchlist board
    ============================================================ */
 .mw-board-viewport {

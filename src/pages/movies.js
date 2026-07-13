@@ -93,6 +93,8 @@ const moviesPageState = {
   editingMovieId: null,
   editingMovieStatus: null,
   pendingDeleteId: null,
+  searchQuery: '',
+  genreFilter: '',
 }
 
 let moviesListenersReady = false
@@ -129,21 +131,26 @@ function syncEmptyColumnStates() {
   const lists = getBoard()?.querySelectorAll('[data-column-list]') ?? []
 
   lists.forEach((list) => {
-    const hasCards = list.querySelector('.mw-board-card')
-    const emptyElement = list.querySelector('.mw-board-column__empty')
+    const hasVisibleCards = list.querySelector('.mw-board-card:not(.d-none)')
+    const emptyElement = list.querySelector('.mw-board-column__empty:not([data-filter-empty])')
 
-    if (hasCards && emptyElement) {
+    if (hasVisibleCards && emptyElement) {
       emptyElement.remove()
       return
     }
 
-    if (!hasCards && !emptyElement) {
+    if (!hasVisibleCards && !emptyElement && !hasMoviesFilter()) {
       list.insertAdjacentHTML('beforeend', EMPTY_COLUMN_MESSAGE)
     }
   })
 }
 
 function updateColumnCounts() {
+  if (hasMoviesFilter()) {
+    applyMoviesFilter()
+    return
+  }
+
   const grouped = groupMoviesByStatus(moviesPageState.movies)
 
   Object.entries(grouped).forEach(([status, movies]) => {
@@ -323,6 +330,7 @@ function refreshBoard() {
   if (board) {
     board.innerHTML = renderBoard(moviesPageState.movies)
     initBoardSortable()
+    applyMoviesFilter()
   }
 }
 
@@ -341,6 +349,102 @@ function populateGenreOptions() {
     .join('')
 
   genreSelect.innerHTML = `<option value="">Select a genre</option>${options}`
+}
+
+function hasMoviesFilter() {
+  return moviesPageState.searchQuery !== '' || moviesPageState.genreFilter !== ''
+}
+
+function applyMoviesFilter() {
+  const query = moviesPageState.searchQuery.toLowerCase().trim()
+  const genreFilter = moviesPageState.genreFilter
+  const active = query !== '' || genreFilter !== ''
+
+  const board = getBoard()
+  if (!board) return
+
+  const visiblePerColumn = { want_to_watch: 0, watched: 0 }
+
+  board.querySelectorAll('.mw-board-card[data-movie-id]').forEach((card) => {
+    const movieId = card.getAttribute('data-movie-id')
+    const movie = moviesPageState.movies.find((m) => m.id === movieId)
+
+    const visible =
+      !active ||
+      (movie &&
+        (!query || movie.title.toLowerCase().includes(query)) &&
+        (!genreFilter || String(movie.genre_id) === genreFilter))
+
+    card.classList.toggle('d-none', !visible)
+    if (visible && movie) {
+      visiblePerColumn[movie.status] = (visiblePerColumn[movie.status] ?? 0) + 1
+    }
+  })
+
+  ;['want_to_watch', 'watched'].forEach((status) => {
+    const col = board.querySelector(`[data-board-column="${status}"]`)
+    if (!col) return
+
+    const countEl = col.querySelector('[data-column-count]')
+    const list = col.querySelector('[data-column-list]')
+    const visible = visiblePerColumn[status] ?? 0
+    const total = moviesPageState.movies.filter((m) => m.status === status).length
+
+    if (countEl) {
+      const label = total === 1 ? 'title' : 'titles'
+      countEl.textContent = active ? `${visible} of ${total} ${label}` : `${total} ${label}`
+    }
+
+    if (list) {
+      const filterEmptyEl = list.querySelector('[data-filter-empty]')
+      const columnEmptyEl = list.querySelector('.mw-board-column__empty:not([data-filter-empty])')
+
+      if (active && visible === 0 && total > 0) {
+        if (columnEmptyEl) columnEmptyEl.classList.add('d-none')
+        if (!filterEmptyEl) {
+          list.insertAdjacentHTML(
+            'beforeend',
+            '<p class="mw-board-column__empty text-muted mb-0" data-filter-empty>No movies match your filters.</p>',
+          )
+        } else {
+          filterEmptyEl.classList.remove('d-none')
+        }
+      } else {
+        if (filterEmptyEl) filterEmptyEl.classList.add('d-none')
+        if (columnEmptyEl) columnEmptyEl.classList.remove('d-none')
+      }
+    }
+  })
+
+  const clearBtn = moviesPageState.root?.querySelector('#movies-filter-clear')
+  if (clearBtn) {
+    clearBtn.classList.toggle('d-none', !active)
+  }
+}
+
+function populateMoviesGenreFilter() {
+  const genreSelect = moviesPageState.root?.querySelector('#movies-genre-filter')
+  if (!genreSelect) return
+
+  const options = moviesPageState.genres
+    .map((genre) => `<option value="${genre.id}">${escapeHtml(genre.name)}</option>`)
+    .join('')
+
+  genreSelect.innerHTML = `<option value="">All genres</option>${options}`
+  genreSelect.value = moviesPageState.genreFilter
+}
+
+function clearMoviesFilter() {
+  moviesPageState.searchQuery = ''
+  moviesPageState.genreFilter = ''
+
+  const searchInput = moviesPageState.root?.querySelector('#movies-search')
+  const genreSelect = moviesPageState.root?.querySelector('#movies-genre-filter')
+
+  if (searchInput) searchInput.value = ''
+  if (genreSelect) genreSelect.value = ''
+
+  applyMoviesFilter()
 }
 
 function resetMovieForm() {
@@ -642,10 +746,36 @@ function ensureMoviesListeners() {
 
   moviesListenersReady = true
 
+  document.addEventListener('input', (event) => {
+    const page = moviesPageState.root?.querySelector('#movies-page')
+    if (!page) return
+
+    if (event.target.id === 'movies-search' && page.contains(event.target)) {
+      moviesPageState.searchQuery = event.target.value
+      applyMoviesFilter()
+    }
+  })
+
+  document.addEventListener('change', (event) => {
+    const page = moviesPageState.root?.querySelector('#movies-page')
+    if (!page) return
+
+    if (event.target.id === 'movies-genre-filter' && page.contains(event.target)) {
+      moviesPageState.genreFilter = event.target.value
+      applyMoviesFilter()
+    }
+  })
+
   document.addEventListener('click', (event) => {
     const page = moviesPageState.root?.querySelector('#movies-page')
 
     if (!page) {
+      return
+    }
+
+    const clearFilterBtn = event.target.closest('#movies-filter-clear')
+    if (clearFilterBtn && page.contains(clearFilterBtn)) {
+      clearMoviesFilter()
       return
     }
 
@@ -847,6 +977,36 @@ export function renderMoviesPage() {
         </p>
       </div>
 
+      <div class="mw-board-filters mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-sm">
+            <input
+              type="search"
+              class="form-control form-control-sm"
+              id="movies-search"
+              placeholder="Search movies…"
+              autocomplete="off"
+              aria-label="Search movies"
+            />
+          </div>
+          <div class="col-12 col-sm-auto mw-filter-genre-col">
+            <select class="form-select form-select-sm" id="movies-genre-filter" aria-label="Filter by genre">
+              <option value="">All genres</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-light d-none"
+              id="movies-filter-clear"
+              aria-label="Clear filters"
+            >
+              &#10005; Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="mw-board-viewport">
         <div class="row g-4 mw-board" id="movies-board">
           ${renderBoardColumn('want_to_watch', [], true)}
@@ -1005,6 +1165,8 @@ export async function bindMoviesPage(root) {
   moviesPageState.pendingDeleteId = null
   moviesPageState.editingMovieId = null
   moviesPageState.editingMovieStatus = null
+  moviesPageState.searchQuery = ''
+  moviesPageState.genreFilter = ''
 
   mountMoviesModals(root)
 
@@ -1020,6 +1182,7 @@ export async function bindMoviesPage(root) {
   } else {
     moviesPageState.genres = fetchedGenres ?? []
     populateGenreOptions()
+    populateMoviesGenreFilter()
   }
 
   if (error) {
