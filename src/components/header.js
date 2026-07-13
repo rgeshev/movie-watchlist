@@ -1,9 +1,10 @@
 export function renderHeader(user, profile = null) {
   const isAdminUser = profile?.role === 'admin'
+  const displayName = profile?.username || user?.user_metadata?.username || user?.email || ''
   const authNav = user
     ? `
       <li class="nav-item">
-        <span class="nav-link text-white-50">${user.user_metadata?.username || user.email}</span>
+        <a class="nav-link text-white-50 mw-profile-nav-link" href="/profile" data-link title="Edit profile">${displayName}</a>
       </li>
       <li class="nav-item ms-lg-3">
         <button type="button" class="btn btn-outline-light btn-sm" data-logout>Log out</button>

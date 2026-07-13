@@ -7,6 +7,7 @@ import { renderMoviesPage, bindMoviesPage } from './pages/movies.js'
 import { renderSeriesPage, bindSeriesPage } from './pages/series.js'
 import { renderAdminPage, bindAdminPage } from './pages/admin.js'
 import { renderMoviePage } from './pages/movie.js'
+import { renderProfilePage, bindProfilePage } from './pages/profile.js'
 import { initAuth, onAuthChange, getUser, getProfile, isAdmin } from './lib/auth.js'
 import { isSupabaseConfigured } from './lib/supabase.js'
 import { toast } from './components/toast.js'
@@ -18,6 +19,7 @@ const routes = [
   { path: '/movies', render: renderMoviesPage },
   { path: '/series', render: renderSeriesPage },
   { path: '/admin', render: renderAdminPage },
+  { path: '/profile', render: renderProfilePage },
   { path: '/movies/:id/', render: renderMoviePage },
 ]
 
@@ -75,7 +77,7 @@ export async function initApp() {
       return
     }
 
-    const protectedPaths = ['/dashboard', '/movies', '/series', '/admin']
+    const protectedPaths = ['/dashboard', '/movies', '/series', '/admin', '/profile']
 
     if (protectedPaths.includes(pathname) && !user) {
       router.navigate('/login')
@@ -121,6 +123,10 @@ export async function initApp() {
 
     if (pathname === '/admin') {
       bindAdminPage(app)
+    }
+
+    if (pathname === '/profile') {
+      bindProfilePage(app, router)
     }
   }
 

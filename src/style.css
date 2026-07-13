@@ -1019,3 +1019,56 @@ a:hover {
   font-size: 1.25rem;
   gap: 1px;
 }
+
+/* ============================================================
+   Profile page
+   ============================================================ */
+.mw-profile-card {
+  border-color: var(--mw-border);
+}
+
+.mw-profile-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.mw-profile-avatar-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.mw-profile-avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  border: 2px solid var(--mw-border);
+}
+
+.mw-profile-avatar--img {
+  object-fit: cover;
+}
+
+.mw-profile-avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--mw-amber), var(--mw-green));
+  color: #0b1215;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.mw-profile-divider {
+  border-color: var(--mw-border);
+  margin: 1.25rem 0;
+}
+
+.mw-profile-nav-link {
+  transition: color 0.15s ease-in-out;
+}
+
+.mw-profile-nav-link:hover {
+  color: var(--mw-text) !important;
+}
