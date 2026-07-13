@@ -1021,6 +1021,16 @@ a:hover {
 }
 
 /* ============================================================
+   Dashboard — data export / import
+   ============================================================ */
+.mw-dashboard-io {
+  padding: 1.75rem;
+  background-color: var(--mw-bg-elevated);
+  border: 1px solid var(--mw-border);
+  border-radius: 0.75rem;
+}
+
+/* ============================================================
    Profile page
    ============================================================ */
 .mw-profile-card {
@@ -1063,6 +1073,17 @@ a:hover {
 .mw-profile-divider {
   border-color: var(--mw-border);
   margin: 1.25rem 0;
+}
+
+.mw-profile-upload-btn[disabled] {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.mw-profile-upload-progress {
+  height: 0.4rem;
+  border-radius: 999px;
+  background-color: var(--mw-surface);
 }
 
 .mw-profile-nav-link {

@@ -1,5 +1,5 @@
 import { getUser, getProfile, refreshProfile } from '../lib/auth.js'
-import { updateProfile } from '../lib/profile.js'
+import { updateProfile, uploadAvatar } from '../lib/profile.js'
 import { toast } from '../components/toast.js'
 
 function escapeHtml(value) {
@@ -26,6 +26,8 @@ function getAvatarInitials(username, email) {
 }
 
 function renderAvatarPreview(avatarUrl, username, email) {
+  const initials = escapeHtml(getAvatarInitials(username, email))
+
   if (avatarUrl) {
     return `
       <img
@@ -40,9 +42,7 @@ function renderAvatarPreview(avatarUrl, username, email) {
         class="mw-profile-avatar mw-profile-avatar--initials"
         style="display:none;"
         aria-hidden="true"
-      >
-        ${escapeHtml(getAvatarInitials(username, email))}
-      </div>
+      >${initials}</div>
     `
   }
 
@@ -51,9 +51,7 @@ function renderAvatarPreview(avatarUrl, username, email) {
       id="profile-avatar-initials"
       class="mw-profile-avatar mw-profile-avatar--initials"
       aria-hidden="true"
-    >
-      ${escapeHtml(getAvatarInitials(username, email))}
-    </div>
+    >${initials}</div>
   `
 }
 
@@ -73,13 +71,13 @@ export function renderProfilePage() {
 
           <div class="mb-5">
             <h1 class="h2 mb-1">Profile</h1>
-            <p class="text-muted mb-0">Update your display name and avatar.</p>
+            <p class="text-muted mb-0">Update your display name and profile photo.</p>
           </div>
 
           <div class="card mw-profile-card mb-4">
             <div class="card-body p-4">
 
-              <!-- Avatar section -->
+              <!-- Current avatar + identity -->
               <div class="mw-profile-avatar-section mb-4">
                 <div class="mw-profile-avatar-wrap" id="profile-avatar-wrap">
                   ${renderAvatarPreview(avatarUrl, username, email)}
@@ -97,7 +95,62 @@ export function renderProfilePage() {
 
               <!-- Edit form -->
               <form id="profile-form" novalidate>
+
+                <!-- Profile photo upload -->
                 <div class="mb-3">
+                  <label class="form-label">Profile photo</label>
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <label
+                      class="btn btn-outline-light btn-sm mw-profile-upload-btn"
+                      for="profile-avatar-file"
+                      id="profile-upload-label"
+                    >
+                      &#8593; Upload image
+                    </label>
+                    <input
+                      type="file"
+                      id="profile-avatar-file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      class="d-none"
+                      aria-label="Upload profile photo"
+                    />
+                    <span class="text-muted small">JPG, PNG, GIF or WebP &middot; Max 5 MB</span>
+                  </div>
+                  <div id="profile-upload-progress" class="d-none">
+                    <div class="progress mw-profile-upload-progress">
+                      <div
+                        class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                        role="progressbar"
+                        style="width: 100%"
+                        aria-label="Uploading…"
+                      ></div>
+                    </div>
+                    <p class="text-muted small mt-1 mb-0">Uploading photo…</p>
+                  </div>
+                </div>
+
+                <!-- Avatar URL (fallback / manual) -->
+                <div class="mb-4">
+                  <label for="profile-avatar-url" class="form-label">
+                    Or paste an image URL
+                  </label>
+                  <input
+                    type="url"
+                    class="form-control"
+                    id="profile-avatar-url"
+                    name="avatarUrl"
+                    value="${escapeHtml(avatarUrl)}"
+                    placeholder="https://example.com/photo.jpg"
+                    autocomplete="off"
+                  />
+                  <div class="form-text">Stored in the form below until you save.</div>
+                  <div class="invalid-feedback">Please enter a valid URL.</div>
+                </div>
+
+                <hr class="mw-profile-divider" />
+
+                <!-- Username -->
+                <div class="mb-4">
                   <label for="profile-username" class="form-label">Username</label>
                   <input
                     type="text"
@@ -112,26 +165,11 @@ export function renderProfilePage() {
                   <div class="form-text">This is how your name appears across the app.</div>
                 </div>
 
-                <div class="mb-4">
-                  <label for="profile-avatar-url" class="form-label">Avatar URL</label>
-                  <input
-                    type="url"
-                    class="form-control"
-                    id="profile-avatar-url"
-                    name="avatarUrl"
-                    value="${escapeHtml(avatarUrl)}"
-                    placeholder="https://example.com/avatar.jpg"
-                    autocomplete="off"
-                  />
-                  <div class="form-text">Paste a direct link to an image (JPG, PNG, etc.).</div>
-                  <div class="invalid-feedback">Please enter a valid URL.</div>
-                </div>
-
                 <div class="d-flex gap-2 align-items-center">
                   <button type="submit" class="btn btn-primary" id="profile-save-btn">
                     Save changes
                   </button>
-                  <span class="mw-profile-save-status text-muted small d-none" id="profile-save-status"></span>
+                  <span class="text-muted small d-none" id="profile-save-status"></span>
                 </div>
               </form>
 
@@ -157,12 +195,14 @@ export async function bindProfilePage(root, _router) {
   const saveStatus = root.querySelector('#profile-save-status')
   const avatarUrlInput = root.querySelector('#profile-avatar-url')
   const usernameInput = root.querySelector('#profile-username')
+  const fileInput = root.querySelector('#profile-avatar-file')
+  const uploadLabel = root.querySelector('#profile-upload-label')
+  const uploadProgress = root.querySelector('#profile-upload-progress')
 
   if (!form) return
 
-  // Live avatar preview as the user types the URL
+  // Live avatar preview when pasting a URL
   let previewTimeout = null
-
   avatarUrlInput?.addEventListener('input', () => {
     clearTimeout(previewTimeout)
     previewTimeout = setTimeout(() => {
@@ -173,6 +213,49 @@ export async function bindProfilePage(root, _router) {
     }, 400)
   })
 
+  // Avatar file upload — fires immediately on file pick
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0]
+    if (!file) return
+
+    if (uploadLabel) uploadLabel.setAttribute('disabled', '')
+    if (uploadProgress) uploadProgress.classList.remove('d-none')
+
+    const { url, error } = await uploadAvatar(file)
+
+    if (uploadProgress) uploadProgress.classList.add('d-none')
+    if (uploadLabel) uploadLabel.removeAttribute('disabled')
+
+    // Reset so the same file can be re-selected after an error
+    fileInput.value = ''
+
+    if (error) {
+      toast.error(error.message || 'Upload failed. Please try again.')
+      return
+    }
+
+    // Put the new URL into the URL field and update preview
+    if (avatarUrlInput) avatarUrlInput.value = url
+    const user = getUser()
+    updateAvatarPreview(root, url, usernameInput?.value.trim() || '', user?.email || '')
+
+    // Persist the new avatar_url right away
+    const { error: saveError } = await updateProfile({ avatarUrl: url })
+    if (saveError) {
+      toast.error('Photo uploaded but could not be saved. Hit "Save changes" to retry.')
+      return
+    }
+
+    await refreshProfile()
+    toast.success('Profile photo updated.')
+
+    const headerLink = document.querySelector('.mw-profile-nav-link')
+    if (headerLink) {
+      headerLink.textContent = getProfile()?.username || user?.email || ''
+    }
+  })
+
+  // Main form save
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
 
@@ -203,7 +286,6 @@ export async function bindProfilePage(root, _router) {
 
     if (error) {
       if (error.code === '23505') {
-        // Unique constraint: username already taken
         toast.error('That username is already taken. Please choose another.')
       } else {
         toast.error('Could not save your profile. Please try again.')
@@ -213,7 +295,6 @@ export async function bindProfilePage(root, _router) {
 
     await refreshProfile()
 
-    // Update the display name shown in the avatar section
     const displayName = root.querySelector('#profile-display-name')
     const user = getUser()
     if (displayName) {
@@ -233,10 +314,9 @@ export async function bindProfilePage(root, _router) {
 
     toast.success('Profile updated.')
 
-    // Update the header nav username link in-place so the user sees the new name immediately
     const headerLink = document.querySelector('.mw-profile-nav-link')
     if (headerLink) {
-      headerLink.textContent = profile.username || getUser()?.email || ''
+      headerLink.textContent = profile.username || user?.email || ''
     }
   })
 }

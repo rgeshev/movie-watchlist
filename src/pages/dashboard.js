@@ -1,6 +1,7 @@
 import { getUser } from '../lib/auth.js'
 import { getMovieStats } from '../lib/movies.js'
 import { getSeriesStats } from '../lib/series.js'
+import { exportWatchlist, importWatchlist } from '../lib/watchlist-io.js'
 import { toast } from '../components/toast.js'
 import { bindLinks } from '../components/layout.js'
 
@@ -86,6 +87,23 @@ export function renderDashboardPage() {
         ${renderStatGroup({ title: 'Movies', icon: '&#127916;', href: '/movies', loading: true })}
         ${renderStatGroup({ title: 'Series', icon: '&#128250;', href: '/series', loading: true })}
       </div>
+
+      <div class="mw-dashboard-io mt-5">
+        <h2 class="h4 mb-1">Your data</h2>
+        <p class="text-muted mb-4 small">
+          Download a backup of your entire watchlist or restore one from a previous export.
+        </p>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <button type="button" class="btn btn-outline-light btn-sm" id="export-watchlist-btn">
+            &#8595;&ensp;Export watchlist
+          </button>
+          <label class="btn btn-outline-light btn-sm mb-0" for="import-watchlist-file">
+            &#8593;&ensp;Import watchlist
+          </label>
+          <input type="file" id="import-watchlist-file" accept=".json,application/json" class="d-none" />
+          <span class="text-muted small d-none" id="import-status"></span>
+        </div>
+      </div>
     </section>
   `
 }
@@ -123,4 +141,79 @@ export async function bindDashboardPage(root, router) {
   `
 
   bindLinks(statsContainer, router)
+
+  // Export
+  const exportBtn = root.querySelector('#export-watchlist-btn')
+  exportBtn?.addEventListener('click', async () => {
+    exportBtn.disabled = true
+    exportBtn.textContent = 'Exporting…'
+
+    const { error, counts } = await exportWatchlist()
+
+    exportBtn.disabled = false
+    exportBtn.innerHTML = '&#8595;&ensp;Export watchlist'
+
+    if (error) {
+      toast.error('Export failed. Please try again.')
+      return
+    }
+
+    toast.success(
+      `Exported ${counts.movies} movie${counts.movies !== 1 ? 's' : ''} and ${counts.series} series.`,
+    )
+  })
+
+  // Import
+  const importFile = root.querySelector('#import-watchlist-file')
+  const importStatus = root.querySelector('#import-status')
+  const importLabel = root.querySelector('[for="import-watchlist-file"]')
+
+  importFile?.addEventListener('change', async () => {
+    const file = importFile.files?.[0]
+    if (!file) return
+
+    if (importLabel) {
+      importLabel.setAttribute('aria-disabled', 'true')
+      importLabel.style.pointerEvents = 'none'
+      importLabel.style.opacity = '0.65'
+    }
+
+    if (importStatus) {
+      importStatus.textContent = 'Importing…'
+      importStatus.classList.remove('d-none')
+    }
+
+    const text = await file.text()
+    const { error, counts } = await importWatchlist(text)
+
+    // Reset file input so the same file can be re-imported
+    importFile.value = ''
+
+    if (importLabel) {
+      importLabel.removeAttribute('aria-disabled')
+      importLabel.style.removeProperty('pointer-events')
+      importLabel.style.removeProperty('opacity')
+    }
+
+    if (importStatus) {
+      importStatus.classList.add('d-none')
+      importStatus.textContent = ''
+    }
+
+    if (error) {
+      toast.error(error.message || 'Import failed. Please check the file and try again.')
+      return
+    }
+
+    const msg = [
+      counts.movies > 0 ? `${counts.movies} movie${counts.movies !== 1 ? 's' : ''}` : '',
+      counts.series > 0 ? `${counts.series} series` : '',
+    ]
+      .filter(Boolean)
+      .join(' and ')
+
+    const skippedNote = counts.skipped > 0 ? ` (${counts.skipped} skipped)` : ''
+
+    toast.success(msg ? `Imported ${msg}${skippedNote}.` : `Nothing new to import${skippedNote}.`)
+  })
 }
